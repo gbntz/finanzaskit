@@ -55,8 +55,8 @@
 
     <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100 relative">
         
-        <!-- Botón de Ajustes (Toggle Criterios y API Key) -->
-        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100" title="Configurar Reglas y API Key">
+        <!-- Botón de Ajustes (Solo Reglas) -->
+        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100" title="Configurar Reglas">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -83,16 +83,9 @@
                 <textarea id="user-criteria" rows="2" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Ej: 'Todos los gastos de Tienda Inglesa van al rubro 111-000'"></textarea>
             </div>
 
-            <!-- Sección API Key -->
-            <div class="space-y-2 border-t border-indigo-200 pt-4">
-                <label for="api-key-input" class="block text-sm font-bold text-indigo-800">API Key de Google Gemini (Opcional)</label>
-                <input type="password" id="api-key-input" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Pega tu API Key aquí si la tienes">
-                <p class="text-xs text-indigo-500">Si usas esto fuera del editor, necesitarás tu propia clave. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-indigo-800">Conseguir gratis</a>.</p>
-            </div>
-
             <div class="flex justify-end pt-2">
                 <button id="save-settings-button" class="bg-indigo-600 text-white text-sm font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
-                    Guardar Configuración
+                    Guardar Reglas
                 </button>
             </div>
         </div>
@@ -191,7 +184,8 @@
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // --- API Key Fija ---
+        // --- API Key Fija (Configurada por el desarrollador) ---
+        // ¡¡¡¡ IMPORTANTE !!!!
         // PEGA TU CLAVE DE GOOGLE AI STUDIO AQUÍ ABAJO:
         const apiKey = "AIzaSyCyjyB5Fpt-8hgxOL4DkkwT7Hfs5_SZ_po"; 
         
@@ -203,13 +197,12 @@
         let criteriaDocRef;
         let currentImageFile = null;
         let classifiedData = [];
-        let userApiKey = localStorage.getItem("gemini_api_key") || "";
+        let RUBROS_DB = []; // Inicialmente vacío, se carga del JSON
 
         // --- Elementos del DOM ---
         const settingsBtn = document.getElementById("settings-btn");
         const criteriaPanel = document.getElementById("criteria-panel");
         const criteriaInput = document.getElementById("user-criteria");
-        const apiKeyInput = document.getElementById("api-key-input");
         const saveSettingsButton = document.getElementById("save-settings-button");
         const userIdDisplay = document.getElementById("user-id-display");
 
@@ -233,85 +226,6 @@
         const tableBody = document.getElementById("table-body");
         const downloadExcelButton = document.getElementById("download-excel-button");
 
-        // Inicializar campo de API Key
-        apiKeyInput.value = userApiKey;
-
-        // --- TU BASE DE DATOS DE RUBROS ---
-        const RUBROS_DB = [
-            { "numero": "111-000", "nombre": "Alimentación Personas (General)", "descripcion": "Todo insumo/producto c/destino final a la alimentación/personas." },
-            { "numero": "111-001", "nombre": "Alimentación Personas (U.C.A.A.)", "descripcion": "Alimentos para personas cuyas compras se realizan a través de la Unidad Centralizada de Adquisición de Alimentos U.C.A.A." },
-            { "numero": "111-002", "nombre": "Gastos Pandemia COVID-19", "descripcion": "Codifica los gastos ocasionados por la Pandemia del COVID 19." },
-            { "numero": "112-000", "nombre": "Alimentación Animales", "descripcion": "Todo insumo o producto cuyo destino final es la alimentación de animales" },
-            { "numero": "121-000", "nombre": "Textiles y Fibras", "descripcion": "Fibras, tejidos naturales, sintéticos y artificiales." },
-            { "numero": "122-000", "nombre": "Vestimenta y Calzado", "descripcion": "Vestimenta, calzado, uniformes, y todo otro tipo de ropa de trabajo." },
-            { "numero": "131-000", "nombre": "Papel (Insumo)", "descripcion": "Papel papel copia, rollos para máquina de calcular. En general, todo papel sin ningún tipo de impresión." },
-            { "numero": "132-000", "nombre": "Papel y Cartón (Artículos)", "descripcion": "Papel y cartón en sus diversas formas y clases, como biblioratos, carpetas, cajas, sobres, toallas, rollos higiénicos, etc." },
-            { "numero": "133-000", "nombre": "Impresión y Formularios", "descripcion": "Impresión de papelería para tareas de oficina y diversos formularios impresos tales como recibos, facturas." },
-            { "numero": "135-000", "nombre": "Libros y Revistas", "descripcion": "Productos de la industria editorial, tales como libros, revistas, folletos y otras publicaciones." },
-            { "numero": "135-001", "nombre": "Libros y Revistas (Formato Digital)", "descripcion": "Productos tales como libros, revistas, articulos técnicos, guias en formato digital." },
-            { "numero": "139-000", "nombre": "Otros Productos de Papel e Impresos", "descripcion": "Productos de papel, cartón e impresos no incluidos en los objetos anteriores." },
-            { "numero": "141-000", "nombre": "Combustibles y Lubricantes", "descripcion": "Combustibles y lubricantes derivados del petróleo, y del gas natural." },
-            { "numero": "141-001", "nombre": "Combustible Aeronaves (MDN)", "descripcion": "Objeto específico para identificar el crédito presupuestal destinado a \"Combustible de aeronaves\" para el Inciso 03:\"MDN\"." },
-            { "numero": "141-002", "nombre": "Combustibles (Gastos COVID-19)", "descripcion": "Codifica los gastos ocasionados por la Pandemia del COVID 19." },
-            { "numero": "142-000", "nombre": "Energía Eléctrica (Industrial/Venta)", "descripcion": "Energía eléctrica en bloque para la venta por parte de empresas de electricidad." },
-            { "numero": "143-000", "nombre": "Supergas", "descripcion": "Supergas para uso doméstico, industrial, etc." },
-            { "numero": "151-000", "nombre": "Lubricantes y Derivados Petróleo", "descripcion": "Sustancias o productos químicos como aceites, grasas, etc." },
-            { "numero": "152-000", "nombre": "Drogas y Medicamentos (Uso Humano)", "descripcion": "Drogas y Medicamentos utilizados en hospitales, clínicas y policlínicas." },
-            { "numero": "152-001", "nombre": "Drogas y Medicamentos (MSP)", "descripcion": "Habilitado forma expresa Inc. 12-Ej. 2024." },
-            { "numero": "152-003", "nombre": "Medicamentos (Gastos COVID-19)", "descripcion": "Codifica los gastos ocasionados por la Pandemia del COVID 19." },
-            { "numero": "152-009", "nombre": "Medicamentos (Hospitales/Clínicas)", "descripcion": "Medicamentos utilizados en hospitales, clínicas y policlínicas." },
-            { "numero": "153-000", "nombre": "Drogas y Medicamentos (Uso Veterinario)", "descripcion": "Medicamentos y drogas utilizado en clínicas veterinarias." },
-            { "numero": "154-000", "nombre": "Compuestos Químicos, Tintas, Pinturas", "descripcion": "Compuestos químicos como gases industriales, refrigerantes, radioactivos y alcoholes. Tintas, Pinturas, barnices." },
-            { "numero": "155-000", "nombre": "Abonos y Fertilizantes", "descripcion": "Abonos y fertilizantes en todas sus formas por ejemplo: Urea, amoníaco, insecticidas." },
-            { "numero": "156-000", "nombre": "Productos de Plástico y Acrílico", "descripcion": "Productos de plástico, acrílico y otros materiales sintéticos." },
-            { "numero": "157-000", "nombre": "Productos de Caucho (Neumáticos)", "descripcion": "Productos de caucho en sus diversas formas como por ejemplo: Neumáticos, mangueras." },
-            { "numero": "159-000", "nombre": "Otros Productos Químicos", "descripcion": "Otros productos químicos y conexos no clasificados en los objetos del gasto anteriores." },
-            { "numero": "161-000", "nombre": "Productos de Loza y Cerámica", "descripcion": "Productos de loza, cerámica y similares." },
-            { "numero": "162-000", "nombre": "Productos de Vidrio y Cristal", "descripcion": "Productos de vidrio, cristales, espejos." },
-            { "numero": "163-000", "nombre": "Materiales de Construcción", "descripcion": "Materiales relacionados con la construcción: ladrillos, cal, arena, cemento." },
-            { "numero": "164-000", "nombre": "Petróleo y Gas Natural (Insumo)", "descripcion": "Petróleo y gas natural para uso como combustible en la producción." },
-            { "numero": "169-000", "nombre": "Otros Productos Minerales No Metálicos", "descripcion": "Otros productos minerales no metálicos no incluidos en los objetos anteriores." },
-            { "numero": "171-000", "nombre": "Productos de Hierro y Acero", "descripcion": "Productos de hierro y acero." },
-            { "numero": "173-000", "nombre": "Accesorios Metálicos (Ferretería)", "descripcion": "Adquisición de accesorios metálicos, tornillería, artículos de ferretería." },
-            { "numero": "179-000", "nombre": "Otros Productos Metálicos", "descripcion": "Otros podructos metálicos no clasificados en los objetos anteriores." },
-            { "numero": "191-000", "nombre": "Útiles de Oficina", "descripcion": "Elementos necesarios para el funcionamiento normal de las oficinas, tales como útiles para escritorio, tintas, material fotográfico, ceniceros, lápices." },
-            { "numero": "192-000", "nombre": "Materiales de Limpieza", "descripcion": "Materiales para limpieza, lavandería, y menage doméstico, tales como: jabones, escobas, lavandinas, ceras." },
-            { "numero": "193-000", "nombre": "Aparatos y Accesorios Eléctricos", "descripcion": "Aparatos y accesorios eléctricos de uso común en oficinas: lamparillas, enchufes, cables." },
-            { "numero": "197-000", "nombre": "Insumos Informáticos Menores", "descripcion": "Objetos necesarios para las tareas informáticas como diskettes, cintas, cartuchos, mouse, etc." },
-            { "numero": "199-000", "nombre": "Otros Bienes de Consumo", "descripcion": "Otros bienes de consumo no clasificados en los objetos del gasto anteriores." },
-            { "numero": "211-000", "nombre": "Servicios de Comunicación", "descripcion": "Gastos por concepto de llamadas telefónicas, internet, correos." },
-            { "numero": "212-000", "nombre": "Servicio de Agua y Sanitario", "descripcion": "Gastos por los servicios de agua potable y sanitario." },
-            { "numero": "213-000", "nombre": "Servicios de Energía Eléctrica", "descripcion": "Gastos por consumo de energía eléctrica (UTE)." },
-            { "numero": "214-000", "nombre": "Servicio de Gas", "descripcion": "Gastos por consumo de gas para uso como combustible." },
-            { "numero": "221-000", "nombre": "Publicidad", "descripcion": "Gastos p/concepto publicidad realizada p/medio de radiodifusoras, televisión, cine, diarios, etc." },
-            { "numero": "222-000", "nombre": "Propaganda", "descripcion": "Gastos por concepto de propaganda realizada por medio de radiodifusoras, televisión, etc." },
-            { "numero": "231-000", "nombre": "Pasajes (Dentro del País)", "descripcion": "Pasajes y servicios de transporte." },
-            { "numero": "232-000", "nombre": "Pasajes (Al Exterior, Contrato País)", "descripcion": "Pasajes al exterior contratados en el país." },
-            { "numero": "234-000", "nombre": "Viáticos (Dentro del País)", "descripcion": "Gastos de alojamiento y alimentación en comisión de servicio." },
-            { "numero": "235-000", "nombre": "Viáticos (Fuera del País)", "descripcion": "Erogaciones para atender gastos de alojamiento y alimentación fuera del país." },
-            { "numero": "241-000", "nombre": "Fletes y Almacenaje (Dentro del País)", "descripcion": "Gastos de traslado de equipos, mobiliario, etc. dentro del país." },
-            { "numero": "247-000", "nombre": "Envío Encomiendas (Dentro del País)", "descripcion": "Gastos por concepto de envío de cartas, encomiendas, impresos, etc." },
-            { "numero": "251-000", "nombre": "Alquiler de Inmuebles (En el País)", "descripcion": "Arrendamiento de inmuebles dentro del país." },
-            { "numero": "253-000", "nombre": "Alquiler Equipo de Computación", "descripcion": "Erogaciones por el uso de equipo de computación, modems, impresoras." },
-            { "numero": "254-000", "nombre": "Alquiler Equipo de Oficina", "descripcion": "Erogaciones por el uso de equipos de servicios de oficinas." },
-            { "numero": "257-000", "nombre": "Arrendamiento de Vehículos", "descripcion": "Alquiler de autos y otros vehículos." },
-            { "numero": "263-000", "nombre": "Tasas, Contribuciones, Multas", "descripcion": "Erogaciones por tasas, contribuciones o multas." },
-            { "numero": "264-000", "nombre": "Seguros (En el País)", "descripcion": "Primas de seguros generales, de vida, etc. en el país." },
-            { "numero": "266-000", "nombre": "Servicios Bancarios (En el País)", "descripcion": "Gastos por servicios bancarios, comisiones, chequeras." },
-            { "numero": "271-000", "nombre": "Mantenimiento y Limpieza (Edificios)", "descripcion": "Mantenimiento y reparaciones menores de edificios." },
-            { "numero": "273-000", "nombre": "Mantenimiento de Vehículos", "descripcion": "Reparaciones y mantenimiento de vehículos." },
-            { "numero": "275-000", "nombre": "Mantenimiento Equipo de Oficina", "descripcion": "Mantenimiento de mobiliario y equipos de oficina." },
-            { "numero": "276-000", "nombre": "Mantenimiento Equipos Varios", "descripcion": "Mantenimiento de maquinaria y equipos informáticos, de comunicación, etc." },
-            { "numero": "278-000", "nombre": "Servicios de Limpieza y Fumigación", "descripcion": "Servicios contratados de limpieza y aseo." },
-            { "numero": "282-000", "nombre": "Servicios Profesionales", "descripcion": "Contratación de servicios profesionales y técnicos." },
-            { "numero": "284-000", "nombre": "Servicios de Capacitación", "descripcion": "Cursos y programas de capacitación." },
-            { "numero": "285-000", "nombre": "Servicios Informáticos", "descripcion": "Gastos por servicios informáticos y de software." },
-            { "numero": "291-000", "nombre": "Servicios de Vigilancia", "descripcion": "Servicios de seguridad y vigilancia." },
-            { "numero": "294-000", "nombre": "Servicios de Alimentación", "descripcion": "Servicios de alimentación contratados." },
-            { "numero": "299-000", "nombre": "Otros Servicios No Personales", "descripcion": "Servicios varios no incluidos en otras categorías." },
-            { "numero": "323-000", "nombre": "Equipos de Computación (Inversión)", "descripcion": "Adquisición de computadoras y accesorios (Activo)." },
-            { "numero": "326-000", "nombre": "Mobiliario (Inversión)", "descripcion": "Adquisición de muebles de oficina (Activo)." }
-        ];
 
         // --- Utilidades ---
         function fileToBase64(file) {
@@ -351,6 +265,25 @@
             }
         }
 
+        // --- Carga de Rubros desde JSON ---
+        async function fetchRubros() {
+             try {
+                // Busca el archivo en la misma carpeta
+                const response = await fetch('./listado_odg_completo.json');
+                if (!response.ok) {
+                   throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                RUBROS_DB = await response.json();
+                console.log("Rubros loaded:", RUBROS_DB.length);
+             } catch(error) {
+                 console.error("Failed to load rubros:", error);
+                 errorMessage.textContent = "Error: No se pudo cargar la base de datos de rubros (listado_odg_completo.json). Asegúrate de que el archivo esté en la misma carpeta.";
+                 errorMessage.classList.remove("hidden");
+                 classifyTextButton.disabled = true;
+                 classifyImageButton.disabled = true;
+             }
+        }
+
         // --- Firebase Logic ---
         async function initFirebase() {
             try {
@@ -386,19 +319,12 @@
         }
 
         async function saveCriteria() {
-            // Guardar API Key en LocalStorage si se ingresó una
-            const inputKey = apiKeyInput.value.trim();
-            if(inputKey && inputKey !== userApiKey) {
-                 userApiKey = inputKey;
-                 localStorage.setItem("gemini_api_key", userApiKey);
-            }
-
             if (!criteriaDocRef) return;
             saveSettingsButton.textContent = "Guardando...";
             try {
                 await setDoc(criteriaDocRef, { criteria: criteriaInput.value });
                 saveSettingsButton.textContent = "¡Guardado!";
-                setTimeout(() => saveSettingsButton.textContent = "Guardar Configuración", 2000);
+                setTimeout(() => saveSettingsButton.textContent = "Guardar Reglas", 2000);
             } catch (e) {
                 console.error(e);
                 saveSettingsButton.textContent = "Error al guardar";
@@ -465,10 +391,8 @@
         // --- Lógica de Clasificación (API Gemini) ---
 
         async function callGeminiAPI(prompt, inlineData = null) {
-            const activeKey = userApiKey || apiKey;
-
-            if (!activeKey) {
-                throw new Error("Falta la API Key. Configúrala en el botón de engranaje o en el código.");
+            if (!apiKey) {
+                throw new Error("Falta la API Key. Debes pegarla en el código antes de subir el archivo.");
             }
 
             const payload = {
@@ -501,7 +425,7 @@
             let response;
             for(let i=0; i<3; i++) {
                 try {
-                    response = await fetch(`${API_URL}?key=${activeKey}`, {
+                    response = await fetch(`${API_URL}?key=${apiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -518,7 +442,7 @@
                     throw new Error(`Error 400: Solicitud inválida a la IA. Revisa el archivo.`);
                 }
                 if (status === 401) {
-                    throw new Error(`Error 401: API Key inválida. Verifica en Ajustes.`);
+                    throw new Error(`Error 401: API Key inválida.`);
                 }
                 throw new Error(`Error al conectar con la IA: ${status} - ${errText}`);
             }
@@ -556,7 +480,7 @@
                 4. 'Nombre_Rubro': El nombre del rubro (ej: Alimentación). Usa exactamente el nombre de la lista provista.
                 5. 'Motivo': Breve explicación de por qué se eligió ese rubro.
                 
-                Base de Datos Rubros: ${JSON.stringify(RUBROS_DB)}
+                Base de Datos Rubros (TOTAL ${RUBROS_DB.length}): ${JSON.stringify(RUBROS_DB)}
                 Criterios usuario: ${currentSavedCriteria || "Ninguno"}
                 
                 Responde SOLO con un Array JSON con 1 objeto.
@@ -595,7 +519,7 @@
                 3. 'Nombre_Rubro': El nombre del rubro (ej: Alimentación). Usa exactamente el nombre de la lista provista.
                 4. 'Motivo': Breve explicación de por qué se eligió ese rubro.
                 
-                Base de Datos Rubros: ${JSON.stringify(RUBROS_DB)}
+                Base de Datos Rubros (TOTAL ${RUBROS_DB.length}): ${JSON.stringify(RUBROS_DB)}
                 Criterios usuario: ${currentSavedCriteria || "Ninguno"}
                 
                 Responde SOLO con un Array JSON con todos los items encontrados.
@@ -677,7 +601,7 @@
         });
 
         // Init
-        initFirebase();
+        await Promise.all([initFirebase(), fetchRubros()]);
         saveSettingsButton.addEventListener("click", saveCriteria);
 
     </script>
