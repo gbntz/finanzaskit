@@ -13,7 +13,7 @@
   },
   {
     "numero": "114-000",
-    "descripcion": "Productos para consumo final, tales comoNgoma laca, resinas, y bálsamos, césped, árboles y arbustos, carbón vegetal, madera,etc manufacturados o no(excepto muebles)."
+    "descripcion": "Productos para consumo final, tales como Goma laca, resinas, y bálsamos, césped, árboles y arbustos, carbón vegetal, madera,etc manufacturados o no(excepto muebles)."
   },
   {
     "numero": "115-000",
@@ -35,7 +35,6 @@
     "numero": "122-000",
     "descripcion": "Vestimenta, calzado, uniformes, y todo otro tipo de ropa de trabajo para diversos usos. Habilitado de forma expresa para Inciso 04, Ejercicio 2024, Res. 012742 de 11/12/2023. No traspone por Matriz. Se solicita p/GMAP."
   },
-  
   {
     "numero": "123-000",
     "descripcion": "Sábanas, mantas, toallas, cortinas,etc. Se habilito a solicitud del MSP por mail el 27/7/2012 Objeto de gasto habilitado en forma expresa, no podra ser reforzante por Ley Pto. Nal. 19.355 2015-2019-Inciso 15 \"MIDES\""
@@ -84,7 +83,6 @@
     "numero": "136-000",
     "descripcion": "Material impreso valorado conforme a las disposiciones que expresamente lo determinan para ser utilizado en la recaudación de ingresos. \"Por ejemplo: papel sellado, formularios de la DGI,etc."
   },
-  
   {
     "numero": "139-000",
     "descripcion": "Productos de papel, cartón e impresos no incluidos en los objetos anteriores."
@@ -93,12 +91,10 @@
     "numero": "141-000",
     "descripcion": "Combustibles y lubricantes derivados del petróleo, y del gas natural, tales como gasolina, diesel, etc, alcoholes y otros similares."
   },
- 
   {
     "numero": "143-000",
     "descripcion": "Supergas para uso doméstico, industrialcomo combustible en vehículos automotores y etc. (solamente costo de la recarga en garrafas de 3, 13 y 45 kgs., ver catálogo SICE)."
   },
-
   {
     "numero": "149-000",
     "descripcion": "Otras formas de energía y combustibles no clasificados en los objetos del gasto anteriores."
@@ -111,18 +107,14 @@
     "numero": "152-000",
     "descripcion": "Drogas y Medicamentos utilizados en hospitales, clínicas y policlínicas. Objetos de gasto habilitados en forma expresa, no podrán ser reforzantes por Ley 19.355 2015-2019, para los Incisos 03 \"MDN\" y 04 \"MI\". Res. 012742 de 14/12/2023, habilitado en forma expresa para Inc. 03 y 04. No traspone por Matriz. Solicita p/GMAP."
   },
-
-  
   {
     "numero": "153-000",
     "descripcion": "Medicamentos y drogas utilizado en clínicas veterinarias."
   },
-  
   {
     "numero": "154-000",
     "descripcion": "Compuestos químicos como gases industriales, refrigerantes, radioactivos y alcoholes. Tintas para escribir, dibujar o imprimir. Pinturas, barnices, esmaltes y lacas. Masillas y similares, disolventes, diluyentes y removedores de pintura."
   },
-  
   {
     "numero": "155-000",
     "descripcion": "Abonos y fertilizantes en todas sus formas por ejemplo: Urea, amoníaco, insecticidas, herbicidas, fungicidas, plaguicidas, herbicidas, productos antigerminantes, desinfectantes y otros similares."
@@ -149,7 +141,7 @@
   },
   {
     "numero": "162-000",
-    "descripcion": "Productos de vidrio, crstales, espejos, vidrios ópticos, recipientes, y firbra de vidrio."
+    "descripcion": "Productos de vidrio, cristales, espejos, vidrios ópticos, recipientes, y fibra de vidrio."
   },
   {
     "numero": "163-000",
@@ -207,12 +199,10 @@
     "numero": "192-000",
     "descripcion": "Materiales para limpierza, lavandería, y menage doméstico, tales como: jabones, escobas, lavandinas, ceras, y otros productos similares."
   },
-  
   {
     "numero": "194-000",
     "descripcion": "Utiles menores y elementos descartables médico-quirúrgicos, pro ejemplo jeringas, agujas, gasas, vendajes, guantes de cirugía, termómetros, etc. Objeto de gasto habilitado en forma expresa, no podran ser reforzante por Ley de Pto Nal. 19.355 2015-2019 para los Incisos 03 \"MDN\", 04 \"MI\" y 12 \"MSP\". Habilitado forma expresa para los Incisos 03-04 y 12. Res. 012742 de 14/12/2023, Inc. 03, 04 y 12. No traspone por Matriz. Solicita p/GMAP."
   },
-  
   {
     "numero": "195-000",
     "descripcion": "Utiles didácticos como pizarras, material audiovisual, etc.; objetos empleados en la práctica de deportes o para actividades de recreo, tales como: pelotas, redes, aparejos, juegos de mesas, etc.; cds. de música con motivos educacionales, culturales y recreativos (Sodre)"
@@ -221,27 +211,22 @@
     "numero": "196-000",
     "descripcion": "Utensilios indispensables para la cocina y comedor, tales como: ollas, cuchillas, platos, cubiertos, etc, para la elaboración y suministro de alimentos. Para baños como ser artículos especiales accesorios para personas discapacitadas."
   },
-  
   {
     "numero": "197-000",
     "descripcion": "Objetos necesarios para las tareas informáticas como por ejemplo diskettes, cintas, cartuchos, y menores tales como pantallas protectoras, mouse,etc."
   },
-  
   {
     "numero": "198-000",
     "descripcion": "Repuestos y accesorios menores considerados como complemento de máquinas y equipos. Por ejemplo: repuestos y accesorios para máquinas de oficina, equipos de tracción, transporte y elevación, máquinas, equipos de computación, accesorios para explosivos."
   },
-  
   {
     "numero": "198-005",
     "descripcion": "Codifica caravanas identificatorias de semovientes. Objeto de gasto habilitado en forma expresa, no podran ser reforzantes por Ley Pto. Nal. 19.355 2015-2019 para Inciso 07 \"MGAP\". Habilitado forma expresa p/Inciso 07 -Ejercicio 2024, Res. 012742 de 14/12/2023. No traspone por Matriz. Se solicita p/GMAP."
   },
-  
   {
     "numero": "199-000",
     "descripcion": "Otros bienes de consumo no clasificados en los objetos del gasto anteriores."
   },
-  
   {
     "numero": "211-000",
     "descripcion": "Gastos por concepto de llamadas telefónicas de carácter local y de larga distancia, servicios telegráficos, postales, radiogramas, cablegramas y otro tipo de comunicaciones, incluye correos electrónicos. Asimismo se imputan gastos por servicios de conexión a internet (banda ancha), costo de conexión y trasmisión de datos a bases de datos y otros derivados o similares.(SUMINISTROS)"
@@ -254,7 +239,6 @@
     "numero": "213-000",
     "descripcion": "Gastos por consumo de energía eléctrica para alumbrado y uso en labores de oficina y actividades de apoyo. (SUMINISTROS)"
   },
-
   {
     "numero": "214-000",
     "descripcion": "Gastos por consumo de gas para uso como combustible en la producción de bienes o servicios.(SUMINISTROS)"
@@ -311,7 +295,6 @@
     "numero": "232-000",
     "descripcion": "Idem al objeto anterior pero cuando el traslado sea al exterior y los pasajes y servicios se contraten en el país."
   },
-
   {
     "numero": "233-000",
     "descripcion": "Idem al objeto anterior pero cuando los pasajes y servicios se contratan en el exterior."
@@ -320,17 +303,14 @@
     "numero": "234-000",
     "descripcion": "Erogaciones para atender gastos de alojamiento y alimentación del personal fuera de su lugar habitual de trabajo dentro del país, en cumplimiento de una comisión de servicio. El marco normativo puede consultarse en Base Juri/Lexs/Materia Viáticos. Disposiciones especiales: A.32 Dec. 227/001 de 20/6/2001. En consulta a Ases. Jurídica caso de Viáticos contratados por Cachet. No VIGENTE para el Inciso 03"
   },
-
   {
     "numero": "235-000",
     "descripcion": "Erogaciones para atender gastos de alojamiento y alimentación del personal fuera de su lugar habitual de trabajo en cumplimiento de una comisión de servicio fuera del país."
   },
-
   {
     "numero": "236-000",
     "descripcion": "Erogaciones para atender gastos de traslado, instalación y retorno del personal designado a prestar servicios oficiales en el exterior."
   },
-  
   {
     "numero": "239-000",
     "descripcion": "Otros gastos de traslado no incluidos en los objetos anteriores. REMISES, TAXIS."
@@ -343,7 +323,6 @@
     "numero": "241-000",
     "descripcion": "Son los gastos de traslado, de por ejemplo equipos, mobiliario y otros bienes, incluyendo los de funcionarios que por cualquier medio se realice, dentro del país."
   },
-
   {
     "numero": "242-000",
     "descripcion": "Son los gastos de traslado, de por ejemplo equipos, mobiliario y otros bienes, incluyendo los de funcionarios que por cualquier medio se realice, fuera del país. Objeto de gasto habilitado en forma expresa, no podra ser reforzante por Ley Pto. Nal. 19.355-2015-2019 - Inciso 05 \"MEF\""
@@ -356,7 +335,6 @@
     "numero": "244-000",
     "descripcion": "Son los gastos incurridos en mantenimiento y depósito de stock en el exterior. Incluye los servicios de arrendamiento de depósitos, silos, cámara frigorificas, etc., que se realicen fuera del país."
   },
-  
   {
     "numero": "246-000",
     "descripcion": "Son los gastos de acarreo de productos contratados fuera del país. Habilitado forma expresa, Inciso 06-Ejercicio 2024. Res. 012742 de 14/12/2023. No traspone por Matriz. Se solicita p/GMAP."
@@ -377,22 +355,18 @@
     "numero": "249-000",
     "descripcion": "Transporte y otros servicios complementarios no incluidos en los objetos anteriores."
   },
- 
   {
     "numero": "251-000",
     "descripcion": "Las erogaciones por concepto de inmuebles contratados dentro del país p/Incisos Adm.Ctral y Orgs 220 CR son financiadas con sus ctos ptales, según A11 L19438 del 14/10/2016. No ajuste automático, no tiene más caracter de suministro. Partida a detalle y podrá incrementar su crédito Adm.Ctral por (Matrices trasposición), para disminuirlo con info previo y favorable de MEF según A12 Ley 19670 (Alta y Baja de crédito). Reasign.de Inc.09 UE 001 a 099/001 por A107 L19535 RCtas 2016.No infor p/los 220."
   },
-  
   {
     "numero": "252-000",
     "descripcion": "Erogaciones por el uso de inmuebles destinados a oficinas, bodegas, escuelas y otros similares fuera del país. Habilitado de forma expresa p/Inciso 06-Ejercicio 2024. Res. 012742 de 14/12/2023. No traspone por Matriz. Se solicita pGMAP/."
   },
-  
   {
     "numero": "253-000",
     "descripcion": "Erogaciones por el uso de equipo de computación, modems, impresoras y otros periféricos."
   },
-  
   {
     "numero": "254-000",
     "descripcion": "Erogaciones por el uso de equipos de servicios de oficinas y otras áreas de trabajo."
@@ -409,17 +383,14 @@
     "numero": "257-000",
     "descripcion": "Erogaciones por el uso de vehículos automotores, camiones, vagones, barcos, aeronaves, equipo y maquinaria y otros vehículos para el transporte."
   },
-  
   {
     "numero": "258-000",
     "descripcion": "Auxiliar solicitado por ASSE, para poder diferenciarlos a los efectos del control del concepto del gasto, según Nota del 18 de Mayo de 2005. Erogaciones por el arriendo de equipos para Sector Salud."
   },
-  
   {
     "numero": "259-000",
     "descripcion": "Alquileres y arrendamientos no clasificados en los objetos del gasto anteriores. Habilitado de forma expresa para Inciso 14-Ejercicio 2022-No traspone por Matriz para ese Inciso -Se solicita p/GMAP. A partir de 2023 ya no es habilitado en forma expresa para el Inc 14 Res 8085.22 de 5/11/2022"
   },
-  
   {
     "numero": "261-000",
     "descripcion": "Erogaciones por concepto de impuestos, primas de seguros y comisiones por intemediación financiera. (de uso exclusivo de los Entes Descentralizados)."
@@ -432,27 +403,22 @@
     "numero": "263-000",
     "descripcion": "Erogaciones por concepto de tasas como contraprestación de servicios, contribuciones o multas y recargos(sobre tributos, tasas y contribuciones), incluye las tasas de aseo y recolección de basura. No incluye los pagos por servicios básicos que se clasifican en el subgrupo de objetos del gasto correspondiente."
   },
-  
   {
     "numero": "264-000",
     "descripcion": "Primas de seguros generales, de vida y otros riesgos para personas, equipos, inmuebles, muebles, valores, instalaciones y otros bienes asegurados en el país."
   },
-  
   {
     "numero": "265-000",
     "descripcion": "Primas de seguros generales, de vida y otros riesgos para personas, equipos, inmuebles, muebles, valores, instalaciones y otros bienes asegurados en el extranjero."
   },
-  
   {
     "numero": "266-000",
     "descripcion": "Gastos por la utilización de los servicios que prestan los bancos dentro del país, tales como comisiones por giros y remesas, pago de chequeras, comisiones por servicios de firma digital, etc. No incluye intereses y comisiones de la deuda pública."
   },
- 
   {
     "numero": "267-000",
     "descripcion": "Gastos por la utilización de los servicios que prestan los bancos fuera del país, tales como comisiones por giros y remesas, pago de chequeras, etc. No incluye intereses y comisiones de la deuda pública."
   },
-  
   {
     "numero": "268-000",
     "descripcion": "Gastos por la utilización de servicios de intermediación no financieras(de uso exclusivo de organizaciones con actividad comercial)"
@@ -461,12 +427,10 @@
     "numero": "269-000",
     "descripcion": "Gastos por servicios de intermediación financiera, tales como la recaudación de rentas, la administración o el fideicomiso de recursos públicos. Igualmente, otros servicios de intermediación financiera y otros seguros no clasificados en los objetos anteriores. Habilitado forma expresa, Ej. 2024, Res. 012742 de 14/12/2023, para Inc. 09"
   },
- 
   {
     "numero": "271-000",
     "descripcion": "Servicios contratados para mantenimiento, reparaciones menores y limpieza de edificios, oficinas, locales, bodegas y otros inmuebles."
   },
-
   {
     "numero": "272-000",
     "descripcion": "Servicios contratados para mantenimiento, reparaciones menores y limpieza de maquinaria y equipo industrial"
@@ -475,7 +439,6 @@
     "numero": "273-000",
     "descripcion": "Servicios contratados para mantenimiento, reparaciones menores y limpieza de vehículos automotores."
   },
-  
   {
     "numero": "274-000",
     "descripcion": "Servicios contratados para mantenimiento, reparaciones menores y limpieza de barcos, aviones y otros medios de transporte."
@@ -488,7 +451,6 @@
     "numero": "276-000",
     "descripcion": "Servicios contratados para mantenimiento, reparaciones menores y limpieza de maquinaria y equipos diferentes de los considerados en los objetos del gasto anteriores, tales como, de comunicaciones y telefónico; equipo y armamento militar; educativo y recreacional; equipos de laboratorios químicos, de investigación, y análisis; instrumentos de medicina y óptica y otros equipos e instrumentos especializados."
   },
-  
   {
     "numero": "277-000",
     "descripcion": "Servicios contratados para mantenimiento, reparaciones menores y limpieza de caminos, carreteras, autopistas, etc."
@@ -497,7 +459,6 @@
     "numero": "278-000",
     "descripcion": "Servicios contratados de limpieza, de aseo y fumigación en reparticiones públicas, cuando no están asociados a reparaciones y mantenimiento.Objeto habilitado en forma expresa para los Inciso 02 al 15, y 36, no podrá ser reforzante por matriz de trasposición. Habilitado forma expresa para Incisos 02 al 15 y 36 desde Ejerc. 2022 - No traspone por Matriz -Solicita p/GMAP."
   },
-  
   {
     "numero": "279-000",
     "descripcion": "Otros servicios para mantenimiento, reparaciones menores y limpieza no clasificados en los objetos del gasto anteriores."
@@ -506,22 +467,18 @@
     "numero": "281-000",
     "descripcion": "Estudios especiales y formulación de proyectos de inversión, directamente o mediante servicios contratados con terceros para la realización de estudios previos,de prefactibilidad,factibilidad y diseño, así como la supervisión de los mismos, realización de investigaciones y otras actividades tecnico-profesionales,cuando corresponda incluirlos como activo institucional. (sueldos,honorarios,beneficios y otros gastos hechos a particulares). Contratación de empresas, obj.282 es personal."
   },
-  
   {
     "numero": "282-000",
     "descripcion": "Contratación de servicios profesionales y técnicos enmarcados en lo dispuesto por normas especiales. A.3 Ley 18.362.ARRENDAMIENTO DE OBRA Lit a) y SERVICIOS lit b). El Art.55 L.18719 deroga lit.b SERVICIOS. L 18.719 A.47 complementa definición."
   },
-  
   {
     "numero": "283-000",
     "descripcion": "Servicios médicos y sanitarios de carácter extraordinario, incluye la consulta y atención médica, gastos hospitalarios, exámenes clínicos y de laboratorio y otros gastos diferentes de los prestados normalmente por la seguridad social. Habilitado forma expresa p/Inc. 15 -Ej. 2024. No traspone p/Matriz. Se solicita p/GMAP."
   },
-  
   {
     "numero": "284-000",
     "descripcion": "Erogaciones destinadas a atender programas y cursos de capacitación de los empleados públicos."
   },
-  
   {
     "numero": "285-000",
     "descripcion": "Gastos destinados al pago de prestaciones por parte de terceros, de servicios informáticos y anexos."
@@ -530,7 +487,6 @@
     "numero": "285-001",
     "descripcion": "(EX 198/002 en 2017) Gastos por mantenimiento de aparato de control SISCONVE,(SUMINISTROS) que es 1 software q/controla en tiempo real el consumo de combustible de los vehículo.No llevará aumento. Los incrementos serán de acuerdo al contrato con el Inciso, el que deberá nutrir el crédito del bolson 299/000 o de otros suministros.Podrá ser reforzante con otros suministros o previa solicitud y autorización correspondiente del MEF cuando sea a otro objeto que no es suministro.Incluye Adm. Central."
   },
-  
   {
     "numero": "286-000",
     "descripcion": "Erogaciones p/la prestación p/parte de terceros de serv.en régimen de CACHET. Los contratos de personal tendrán p/objeto la realización de activ.docentes, artísticas, así como de radio y televisión,las condiciones estarán detalladas en contratos y en ningún caso adquirirán la calidad de func.público, aún cuando se configure una situación de permanencia derivada de la continuidad de serv.prestados."
@@ -539,13 +495,10 @@
     "numero": "289-000",
     "descripcion": "Servicios profesionales y técnicos no clasificados en los objetos del gasto anteriores"
   },
-  
- 
   {
     "numero": "291-000",
     "descripcion": "Erogaciones por la prestación por parte de terceros de servicios de vigilancia. Objeto habilitado en forma expresa para los Inciso 02 al 15, y 36, no podrá ser reforzante. Habilitado forma expresa p/ Incisos 02 al 15 y 36. Ej. 2024, Res. 012742 de 14/12/2023. No traspone por Matriz. Solicita por GMAP."
   },
-  
   {
     "numero": "292-000",
     "descripcion": "Erogaciones destinadas al pago de contratos de uso de equipos, salas, y otros elementos conexos. (Arrendamiento de salas, audio,luces, etc.)"
@@ -554,12 +507,10 @@
     "numero": "293-000",
     "descripcion": "Erogaciones por la prestación por parte de terceros de servicios portuarios."
   },
-  
   {
     "numero": "294-000",
     "descripcion": "Erogaciones destinadas al pago de servicios de alimentación."
   },
-  
   {
     "numero": "295-000",
     "descripcion": "Codifica los gastos ocasionados por la Pandemia del COVID 19. Recibe trasposición del objeto 749/014 (Partida a reaplicar Fdo COVID 19) que está abierta en el Inciso 24 U.E 024 L.19.874 de 8/04/2020."
@@ -576,7 +527,6 @@
     "numero": "298-000",
     "descripcion": "Gastos por la transferencia de dominio, uso o goce de cosas o la cesión de derechos a favor de la entidad, cuyo monto se determine en relación a una unidad de producción, venta, explotación, etc., cualquiera sea la denominación asignada a su beneficiario."
   },
-  
   {
     "numero": "299-000",
     "descripcion": "Erogaciones por concepto de otros servicios no personales no clasificados en los objetos del gasto anterior. Reasigna del Inc.15-UE 003 al Inc.27-UE 001(289/001), A. 181-L.19.535- RCtas/2016, por concepto de alimentación Plan CAIF."
@@ -659,7 +609,7 @@
   },
   {
     "numero": "356-000",
-    "descripcion": "Adquisición de aviones, helicóteros, etc."
+    "descripcion": "Adquisición de aviones, helicópteros, etc."
   },
   {
     "numero": "358-000",
@@ -711,7 +661,7 @@
   },
   {
     "numero": "579-006",
-    "descripcion": "Contempla un tipo particular de Transferencias a Unidades Familiares, requieren identificación para análisis y control. (Tickets Alimentación, Beneficio en especie para funcionarios. Mensual.)
+    "descripcion": "Contempla un tipo particular de Transferencias a Unidades Familiares, requieren identificación para análisis y control. (Tickets Alimentación, Beneficio en especie para funcionarios. Mensual.)"
   },
   {
     "numero": "721-000",
