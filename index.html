@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clasificador de Gastos IA</title>
+    <!-- Carga de Tailwind CSS para estilos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración de fuente Inter y colores base -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        /* Estilos para las pestañas activas/inactivas */
+        .tab-active {
+            border-bottom: 2px solid #4F46E5;
+            color: #4F46E5;
+            font-weight: 600;
+        }
+        .tab-inactive {
+            border-bottom: 2px solid transparent;
+            color: #6B7280;
+            font-weight: 500;
+        }
+        .tab-inactive:hover {
+            color: #374151;
+            border-bottom: 2px solid #D1D5DB;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Spinner para el botón */
+        .loader-spin {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-left-color: #ffffff;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <!-- Librería ExcelJS para generar el archivo XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100 relative">
+        
+        <!-- Botón de Ajustes (Toggle Criterios y API Key) -->
+        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100" title="Configurar Reglas y API Key">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        </button>
+
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2 text-center">
+            Clasificador de Gastos
+        </h1>
+        <p class="text-center text-gray-500 mb-8">Inteligencia Artificial aplicada a los Objetos del Gasto (ODG)</p>
+        
+        <!-- Área de Configuración (Oculta por defecto) -->
+        <div id="criteria-panel" class="hidden mb-8 space-y-5 bg-indigo-50 p-5 rounded-lg border border-indigo-100 fade-in shadow-sm">
+            
+            <!-- Sección Reglas -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <label for="user-criteria" class="block text-sm font-bold text-indigo-800 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        Reglas Personalizadas
+                    </label>
+                    <span id="user-id-display" class="text-xs text-indigo-400 font-mono"></span>
+                </div>
+                <textarea id="user-criteria" rows="2" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Ej: 'Todos los gastos de Tienda Inglesa van al rubro 111-000'"></textarea>
+            </div>
+
+            <!-- Sección API Key -->
+            <div class="space-y-2 border-t border-indigo-200 pt-4">
+                <label for="api-key-input" class="block text-sm font-bold text-indigo-800">API Key de Google Gemini (Opcional)</label>
+                <input type="password" id="api-key-input" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Pega tu API Key aquí si la tienes">
+                <p class="text-xs text-indigo-500">Si usas esto fuera del editor, necesitarás tu propia clave. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-indigo-800">Conseguir gratis</a>.</p>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button id="save-criteria-button" class="bg-indigo-600 text-white text-sm font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
+                    Guardar Configuración
+                </button>
+            </div>
+        </div>
+
+        <!-- Sistema de Pestañas -->
+        <div class="flex border-b border-gray-200 mb-6">
+            <button id="tab-text" class="flex-1 py-4 text-center transition-colors duration-200 tab-active focus:outline-none">
+                📝 Clasificar por Texto
+            </button>
+            <button id="tab-image" class="flex-1 py-4 text-center transition-colors duration-200 tab-inactive focus:outline-none">
+                📄 Clasificar Factura (PDF/Img)
+            </button>
+        </div>
+
+        <div class="space-y-8">
+
+            <!-- PANEL 1: CLASIFICACIÓN POR TEXTO -->
+            <div id="panel-text" class="space-y-4 fade-in">
+                <div>
+                    <label for="expense-description" class="block text-sm font-medium text-gray-700 mb-1">Descripción del Gasto:</label>
+                    <textarea id="expense-description" rows="3" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="Ej: 'Pago de factura de UTE por $ 4.500' o 'Compra de insumos de oficina'"></textarea>
+                    <p class="text-xs text-gray-400 mt-1 text-right">Tip: Si incluyes el monto en el texto, la IA intentará extraerlo.</p>
+                </div>
+                
+                <button id="classify-text-button" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 ease-in-out flex items-center justify-center space-x-2 h-12">
+                    <!-- Contenido Normal -->
+                    <span class="btn-content flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM4 14a1 1 0 100-2H3v-2a1 1 0 10-2 0v2H0a1 1 0 100 2h1v2a1 1 0 102 0v-2h1z"/></svg>
+                        <span>Clasificar Texto</span>
+                    </span>
+                    <!-- Contenido Cargando -->
+                    <span class="btn-loading hidden flex items-center space-x-2">
+                        <div class="loader-spin"></div>
+                        <span>Analizando...</span>
+                    </span>
+                </button>
+            </div>
+            
+            <!-- PANEL 2: CARGA DE DOCUMENTO (Imagen o PDF) -->
+            <div id="panel-image" class="space-y-4 hidden fade-in">
+                <div>
+                    <label for="invoice-upload" class="block text-sm font-medium text-gray-700 mb-1">Adjuntar Factura (Imagen o PDF):</label>
+                    <input type="file" id="invoice-upload" accept="image/png, image/jpeg, application/pdf" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border rounded-lg p-2"/>
+                    
+                    <!-- Vista previa -->
+                    <div class="mt-4 p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center min-h-[150px]">
+                        <img id="image-preview" src="" alt="Vista previa" class="rounded-lg max-h-48 w-auto hidden shadow-sm"/>
+                        <div id="pdf-preview" class="text-center hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-red-500 mx-auto mb-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+                            <p class="text-sm text-gray-800 font-medium" id="pdf-filename"></p>
+                        </div>
+                        <p id="placeholder-text" class="text-sm text-gray-400">Seleccione un archivo para visualizar</p>
+                    </div>
+                </div>
+                
+                <button id="classify-image-button" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 ease-in-out flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed h-12" disabled>
+                    <!-- Contenido Normal -->
+                    <span class="btn-content flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4V5h12v10zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>
+                        <span>Analizar y Clasificar Documento</span>
+                    </span>
+                    <!-- Contenido Cargando -->
+                    <span class="btn-loading hidden flex items-center space-x-2">
+                        <div class="loader-spin"></div>
+                        <span>Analizando...</span>
+                    </span>
+                </button>
+            </div>
+
+            <div id="error-message" class="hidden text-red-600 font-medium text-center p-3 bg-red-50 border border-red-300 rounded-lg"></div>
+
+            <!-- Panel de Resultados -->
+            <div id="results-panel" class="hidden space-y-4 fade-in">
+                <h2 class="text-xl font-semibold text-gray-800 border-b pb-2">Resultados de la Clasificación</h2>
+                
+                <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Concepto</th>
+                                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Importe</th>
+                                <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Moneda</th>
+                                <!-- Nuevas Columnas -->
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ODG</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción Rubro</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Motivo/Explicación</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Los resultados se insertarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Botón de Descarga -->
+                <button id="download-excel-button" class="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 ease-in-out flex items-center justify-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    <span>Descargar a Excel (.xlsx)</span>
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Configuración de Firebase ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // --- API Key ---
+        const apiKey = ""; // La clave se inyecta automáticamente en el entorno de ejecución.
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+
+        // --- Variables Globales ---
+        let app, db, auth, userId;
+        let currentSavedCriteria = "";
+        let criteriaDocRef;
+        let currentImageFile = null;
+        let classifiedData = [];
+
+        // --- Elementos del DOM ---
+        // Settings
+        const settingsBtn = document.getElementById("settings-btn");
+        const criteriaPanel = document.getElementById("criteria-panel");
+        const criteriaInput = document.getElementById("user-criteria");
+        const apiKeyInput = document.getElementById("api-key-input");
+        const saveButton = document.getElementById("save-criteria-button");
+        const userIdDisplay = document.getElementById("user-id-display");
+
+        // Pestañas
+        const tabText = document.getElementById("tab-text");
+        const tabImage = document.getElementById("tab-image");
+        const panelText = document.getElementById("panel-text");
+        const panelImage = document.getElementById("panel-image");
+
+        // Modo Texto
+        const descriptionInput = document.getElementById("expense-description");
+        const classifyTextButton = document.getElementById("classify-text-button");
+
+        // Modo Imagen
+        const invoiceUpload = document.getElementById("invoice-upload");
+        const imagePreview = document.getElementById("image-preview");
+        const pdfPreview = document.getElementById("pdf-preview");
+        const pdfFilename = document.getElementById("pdf-filename");
+        const placeholderText = document.getElementById("placeholder-text");
+        const classifyImageButton = document.getElementById("classify-image-button");
+        
+        // Comunes
+        const errorMessage = document.getElementById("error-message");
+        const resultsPanel = document.getElementById("results-panel");
+        const tableBody = document.getElementById("table-body");
+        const downloadExcelButton = document.getElementById("download-excel-button");
+
+        // Cargar API Key guardada
+        apiKeyInput.value = localStorage.getItem("gemini_api_key") || "";
+
+        // --- TU BASE DE DATOS DE RUBROS (Expandida) ---
+        const RUBROS_DB = [
+            { "numero": "111-000", "nombre": "Alimentación Personas (General)", "descripcion": "Todo insumo/producto c/destino final a la alimentación/personas." },
+            { "numero": "111-001", "nombre": "Alimentación Personas (U.C.A.A.)", "descripcion": "Alimentos para personas cuyas compras se realizan a través de la Unidad Centralizada de Adquisición de Alimentos U.C.A.A." },
+            { "numero": "111-002", "nombre": "Gastos Pandemia COVID-19", "descripcion": "Codifica los gastos ocasionados por la Pandemia del COVID 19." },
+            { "numero": "112-000", "nombre": "Alimentación Animales", "descripcion": "Todo insumo o producto cuyo destino final es la alimentación de animales" },
+            { "numero": "121-000", "nombre": "Textiles y Fibras", "descripcion": "Fibras, tejidos naturales, sintéticos y artificiales." },
+            { "numero": "122-000", "nombre": "Vestimenta y Calzado", "descripcion": "Vestimenta, calzado, uniformes, y todo otro tipo de ropa de trabajo." },
+            { "numero": "131-000", "nombre": "Papel (Insumo)", "descripcion": "Papel papel copia, rollos para máquina de calcular. En general, todo papel sin ningún tipo de impresión." },
+            { "numero": "132-000", "nombre": "Papel y Cartón (Artículos)", "descripcion": "Papel y cartón en sus diversas formas y clases, como biblioratos, carpetas, cajas, sobres, toallas, rollos higiénicos, etc." },
+            { "numero": "133-000", "nombre": "Impresión y Formularios", "descripcion": "Impresión de papelería para tareas de oficina y diversos formularios impresos tales como recibos, facturas." },
+            { "numero": "135-000", "nombre": "Libros y Revistas", "descripcion": "Productos de la industria editorial, tales como libros, revistas, folletos y otras publicaciones." },
+            { "numero": "135-001", "nombre": "Libros y Revistas (Formato Digital)", "descripcion": "Productos tales como libros, revistas, articulos técnicos, guias en formato digital." },
+            { "numero": "139-000", "nombre": "Otros Productos de Papel e Impresos", "descripcion": "Productos de papel, cartón e impresos no incluidos en los objetos anteriores." },
+            { "numero": "141-000", "nombre": "Combustibles y Lubricantes", "descripcion": "Combustibles y lubricantes derivados del petróleo, y del gas natural." },
+            { "numero": "141-001", "nombre": "Combustible Aeronaves (MDN)", "descripcion": "Objeto específico para identificar el crédito presupuestal destinado a \"Combustible de aeronaves\" para el Inciso 03:\"MDN\"." },
+            { "numero": "141-002", "nombre": "Combustibles (Gastos COVID-19)", "descripcion": "Codifica los gastos ocasionados por la Pandemia del COVID 19." },
+            { "numero": "142-000", "nombre": "Energía Eléctrica (Industrial/Venta)", "descripcion": "Energía eléctrica en bloque para la venta por parte de empresas de electricidad." },
+            { "numero": "143-000", "nombre": "Supergas", "descripcion": "Supergas para uso doméstico, industrial, etc." },
+            { "numero": "151-000", "nombre": "Lubricantes y Derivados Petróleo", "descripcion": "Sustancias o productos químicos como aceites, grasas, etc." },
+            { "numero": "152-000", "nombre": "Drogas y Medicamentos (Uso Humano)", "descripcion": "Drogas y Medicamentos utilizados en hospitales, clínicas y policlínicas." },
+            { "numero": "152-001", "nombre": "Drogas y Medicamentos (MSP)", "descripcion": "Habilitado forma expresa Inc. 12-Ej. 2024." },
+            { "numero": "152-003", "nombre": "Medicamentos (Gastos COVID-19)", "descripcion": "Codifica los gastos ocasionados por la Pandemia del COVID 19." },
+            { "numero": "152-009", "nombre": "Medicamentos (Hospitales/Clínicas)", "descripcion": "Medicamentos utilizados en hospitales, clínicas y policlínicas." },
+            { "numero": "153-000", "nombre": "Drogas y Medicamentos (Uso Veterinario)", "descripcion": "Medicamentos y drogas utilizado en clínicas veterinarias." },
+            { "numero": "154-000", "nombre": "Compuestos Químicos, Tintas, Pinturas", "descripcion": "Compuestos químicos como gases industriales, refrigerantes, radioactivos y alcoholes. Tintas, Pinturas, barnices." },
+            { "numero": "155-000", "nombre": "Abonos y Fertilizantes", "descripcion": "Abonos y fertilizantes en todas sus formas por ejemplo: Urea, amoníaco, insecticidas." },
+            { "numero": "156-000", "nombre": "Productos de Plástico y Acrílico", "descripcion": "Productos de plástico, acrílico y otros materiales sintéticos." },
+            { "numero": "157-000", "nombre": "Productos de Caucho (Neumáticos)", "descripcion": "Productos de caucho en sus diversas formas como por ejemplo: Neumáticos, mangueras." },
+            { "numero": "159-000", "nombre": "Otros Productos Químicos", "descripcion": "Otros productos químicos y conexos no clasificados en los objetos del gasto anteriores." },
+            { "numero": "161-000", "nombre": "Productos de Loza y Cerámica", "descripcion": "Productos de loza, cerámica y similares." },
+            { "numero": "162-000", "nombre": "Productos de Vidrio y Cristal", "descripcion": "Productos de vidrio, cristales, espejos." },
+            { "numero": "163-000", "nombre": "Materiales de Construcción", "descripcion": "Materiales relacionados con la construcción: ladrillos, cal, arena, cemento." },
+            { "numero": "164-000", "nombre": "Petróleo y Gas Natural (Insumo)", "descripcion": "Petróleo y gas natural para uso como combustible en la producción." },
+            { "numero": "169-000", "nombre": "Otros Productos Minerales No Metálicos", "descripcion": "Otros productos minerales no metálicos no incluidos en los objetos anteriores." },
+            { "numero": "171-000", "nombre": "Productos de Hierro y Acero", "descripcion": "Productos de hierro y acero." },
+            { "numero": "173-000", "nombre": "Accesorios Metálicos (Ferretería)", "descripcion": "Adquisición de accesorios metálicos, tornillería, artículos de ferretería." },
+            { "numero": "179-000", "nombre": "Otros Productos Metálicos", "descripcion": "Otros podructos metálicos no clasificados en los objetos anteriores." },
+            { "numero": "191-000", "nombre": "Útiles de Oficina", "descripcion": "Elementos necesarios para el funcionamiento normal de las oficinas, tales como útiles para escritorio, tintas, material fotográfico, ceniceros, lápices." },
+            { "numero": "192-000", "nombre": "Materiales de Limpieza", "descripcion": "Materiales para limpieza, lavandería, y menage doméstico, tales como: jabones, escobas, lavandinas, ceras." },
+            { "numero": "193-000", "nombre": "Aparatos y Accesorios Eléctricos", "descripcion": "Aparatos y accesorios eléctricos de uso común en oficinas: lamparillas, enchufes, cables." },
+            { "numero": "197-000", "nombre": "Insumos Informáticos Menores", "descripcion": "Objetos necesarios para las tareas informáticas como diskettes, cintas, cartuchos, mouse, etc." },
+            { "numero": "199-000", "nombre": "Otros Bienes de Consumo", "descripcion": "Otros bienes de consumo no clasificados en los objetos del gasto anteriores." },
+            { "numero": "211-000", "nombre": "Servicios de Comunicación", "descripcion": "Gastos por concepto de llamadas telefónicas, internet, correos." },
+            { "numero": "212-000", "nombre": "Servicio de Agua y Sanitario", "descripcion": "Gastos por los servicios de agua potable y sanitario." },
+            { "numero": "213-000", "nombre": "Servicios de Energía Eléctrica", "descripcion": "Gastos por consumo de energía eléctrica (UTE)." },
+            { "numero": "214-000", "nombre": "Servicio de Gas", "descripcion": "Gastos por consumo de gas para uso como combustible." },
+            { "numero": "221-000", "nombre": "Publicidad", "descripcion": "Gastos p/concepto publicidad realizada p/medio de radiodifusoras, televisión, cine, diarios, etc." },
+            { "numero": "222-000", "nombre": "Propaganda", "descripcion": "Gastos por concepto de propaganda realizada por medio de radiodifusoras, televisión, etc." },
+            { "numero": "231-000", "nombre": "Pasajes (Dentro del País)", "descripcion": "Pasajes y servicios de transporte." },
+            { "numero": "232-000", "nombre": "Pasajes (Al Exterior, Contrato País)", "descripcion": "Pasajes al exterior contratados en el país." },
+            { "numero": "234-000", "nombre": "Viáticos (Dentro del País)", "descripcion": "Gastos de alojamiento y alimentación en comisión de servicio." },
+            { "numero": "235-000", "nombre": "Viáticos (Fuera del País)", "descripcion": "Erogaciones para atender gastos de alojamiento y alimentación fuera del país." },
+            { "numero": "241-000", "nombre": "Fletes y Almacenaje (Dentro del País)", "descripcion": "Gastos de traslado de equipos, mobiliario, etc. dentro del país." },
+            { "numero": "247-000", "nombre": "Envío Encomiendas (Dentro del País)", "descripcion": "Gastos por concepto de envío de cartas, encomiendas, impresos, etc." },
+            { "numero": "251-000", "nombre": "Alquiler de Inmuebles (En el País)", "descripcion": "Arrendamiento de inmuebles dentro del país." },
+            { "numero": "253-000", "nombre": "Alquiler Equipo de Computación", "descripcion": "Erogaciones por el uso de equipo de computación, modems, impresoras." },
+            { "numero": "254-000", "nombre": "Alquiler Equipo de Oficina", "descripcion": "Erogaciones por el uso de equipos de servicios de oficinas." },
+            { "numero": "257-000", "nombre": "Arrendamiento de Vehículos", "descripcion": "Alquiler de autos y otros vehículos." },
+            { "numero": "263-000", "nombre": "Tasas, Contribuciones, Multas", "descripcion": "Erogaciones por tasas, contribuciones o multas." },
+            { "numero": "264-000", "nombre": "Seguros (En el País)", "descripcion": "Primas de seguros generales, de vida, etc. en el país." },
+            { "numero": "266-000", "nombre": "Servicios Bancarios (En el País)", "descripcion": "Gastos por servicios bancarios, comisiones, chequeras." },
+            { "numero": "271-000", "nombre": "Mantenimiento y Limpieza (Edificios)", "descripcion": "Mantenimiento y reparaciones menores de edificios." },
+            { "numero": "273-000", "nombre": "Mantenimiento de Vehículos", "descripcion": "Reparaciones y mantenimiento de vehículos." },
+            { "numero": "275-000", "nombre": "Mantenimiento Equipo de Oficina", "descripcion": "Mantenimiento de mobiliario y equipos de oficina." },
+            { "numero": "276-000", "nombre": "Mantenimiento Equipos Varios", "descripcion": "Mantenimiento de maquinaria y equipos informáticos, de comunicación, etc." },
+            { "numero": "278-000", "nombre": "Servicios de Limpieza y Fumigación", "descripcion": "Servicios contratados de limpieza y aseo." },
+            { "numero": "282-000", "nombre": "Servicios Profesionales", "descripcion": "Contratación de servicios profesionales y técnicos." },
+            { "numero": "284-000", "nombre": "Servicios de Capacitación", "descripcion": "Cursos y programas de capacitación." },
+            { "numero": "285-000", "nombre": "Servicios Informáticos", "descripcion": "Gastos por servicios informáticos y de software." },
+            { "numero": "291-000", "nombre": "Servicios de Vigilancia", "descripcion": "Servicios de seguridad y vigilancia." },
+            { "numero": "294-000", "nombre": "Servicios de Alimentación", "descripcion": "Servicios de alimentación contratados." },
+            { "numero": "299-000", "nombre": "Otros Servicios No Personales", "descripcion": "Servicios varios no incluidos en otras categorías." },
+            { "numero": "323-000", "nombre": "Equipos de Computación (Inversión)", "descripcion": "Adquisición de computadoras y accesorios (Activo)." },
+            { "numero": "326-000", "nombre": "Mobiliario (Inversión)", "descripcion": "Adquisición de muebles de oficina (Activo)." }
+        ];
+
+        // --- Utilidades ---
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function formatCurrencyUY(amount) {
+            if (amount === null || amount === undefined || amount === "" || isNaN(amount)) return "0,00";
+            return new Intl.NumberFormat('es-UY', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+
+        // --- Helpers de UI (Loading) ---
+        function setButtonLoading(btn, isLoading, originalText) {
+            const contentSpan = btn.querySelector('.btn-content');
+            const loadingSpan = btn.querySelector('.btn-loading');
+            
+            if (isLoading) {
+                btn.disabled = true;
+                btn.classList.add('opacity-75', 'cursor-not-allowed', 'bg-indigo-500');
+                btn.classList.remove('hover:bg-indigo-700');
+                contentSpan.classList.add('hidden');
+                loadingSpan.classList.remove('hidden');
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-indigo-500');
+                btn.classList.add('hover:bg-indigo-700');
+                contentSpan.classList.remove('hidden');
+                loadingSpan.classList.add('hidden');
+            }
+        }
+
+        // --- Firebase Logic ---
+        async function initFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                userId = auth.currentUser.uid;
+                userIdDisplay.textContent = `ID: ${userId.substring(0, 8)}...`;
+
+                criteriaDocRef = doc(db, 'artifacts', appId, 'users', userId, 'app_config', 'user_criteria');
+                listenForCriteria();
+
+            } catch (error) {
+                console.error("Error Firebase:", error);
+            }
+        }
+
+        function listenForCriteria() {
+            if (!criteriaDocRef) return;
+            onSnapshot(criteriaDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentSavedCriteria = docSnap.data().criteria || "";
+                    criteriaInput.value = currentSavedCriteria;
+                }
+            });
+        }
+
+        async function saveCriteria() {
+            const storedKey = apiKeyInput.value.trim();
+            if(storedKey) localStorage.setItem("gemini_api_key", storedKey);
+            
+            if (!criteriaDocRef) return;
+            saveButton.textContent = "Guardando...";
+            try {
+                await setDoc(criteriaDocRef, { criteria: criteriaInput.value });
+                saveButton.textContent = "¡Guardado!";
+                setTimeout(() => saveButton.textContent = "Guardar Configuración", 2000);
+            } catch (e) {
+                console.error(e);
+                saveButton.textContent = "Error al guardar";
+            }
+        }
+
+        // --- Lógica de Interfaz ---
+        
+        // Settings Toggle
+        settingsBtn.addEventListener("click", () => {
+            criteriaPanel.classList.toggle("hidden");
+        });
+
+        // Cambio de Pestañas
+        function switchTab(mode) {
+            resultsPanel.classList.add("hidden");
+            errorMessage.classList.add("hidden");
+            
+            if (mode === 'text') {
+                panelText.classList.remove("hidden");
+                panelImage.classList.add("hidden");
+                tabText.className = "flex-1 py-4 text-center transition-colors duration-200 tab-active focus:outline-none";
+                tabImage.className = "flex-1 py-4 text-center transition-colors duration-200 tab-inactive focus:outline-none";
+            } else {
+                panelText.classList.add("hidden");
+                panelImage.classList.remove("hidden");
+                tabImage.className = "flex-1 py-4 text-center transition-colors duration-200 tab-active focus:outline-none";
+                tabText.className = "flex-1 py-4 text-center transition-colors duration-200 tab-inactive focus:outline-none";
+            }
+        }
+
+        tabText.addEventListener("click", () => switchTab('text'));
+        tabImage.addEventListener("click", () => switchTab('image'));
+
+        // Upload Input
+        invoiceUpload.addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            classifyImageButton.disabled = !file;
+            classifyImageButton.classList.toggle("opacity-50", !file);
+            classifyImageButton.classList.toggle("cursor-not-allowed", !file);
+            
+            currentImageFile = file || null;
+            
+            imagePreview.classList.add("hidden");
+            pdfPreview.classList.add("hidden");
+            placeholderText.classList.remove("hidden");
+
+            if (file) {
+                placeholderText.classList.add("hidden");
+                if (file.type.startsWith("image/")) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imagePreview.src = e.target.result;
+                        imagePreview.classList.remove("hidden");
+                    };
+                    reader.readAsDataURL(file);
+                } else if (file.type === "application/pdf") {
+                    pdfFilename.textContent = file.name;
+                    pdfPreview.classList.remove("hidden");
+                } 
+            }
+        });
+
+        // --- Lógica de Clasificación (API Gemini) ---
+
+        async function callGeminiAPI(prompt, inlineData = null) {
+            // Priorizar clave guardada por usuario, sino usar la del entorno
+            const userKey = apiKeyInput.value.trim();
+            const activeKey = userKey || apiKey;
+            
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: [
+                        { text: prompt },
+                        ...(inlineData ? [inlineData] : [])
+                    ]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                "Concepto": { "type": "STRING" },
+                                "Numero_ODG": { "type": "STRING" },
+                                "Nombre_Rubro": { "type": "STRING" },
+                                "Importe": { "type": "NUMBER" },
+                                "Moneda": { "type": "STRING" },
+                                "Motivo": { "type": "STRING" }
+                            }
+                        }
+                    }
+                }
+            };
+
+            let response;
+            for(let i=0; i<3; i++) {
+                try {
+                    response = await fetch(`${API_URL}?key=${activeKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if(response.ok) break;
+                } catch(e) { console.error(e); }
+                await new Promise(r => setTimeout(r, 1000 * (i+1)));
+            }
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Error de conexión (${response.status}). Si ves un 400/401, verifica la API Key en la rueda de ajustes.`);
+            }
+
+            const result = await response.json();
+            const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+            
+            if (jsonText) {
+                return JSON.parse(jsonText);
+            } else {
+                throw new Error("La IA no devolvió resultados legibles.");
+            }
+        }
+
+        // 1. Clasificación de TEXTO
+        classifyTextButton.addEventListener("click", async () => {
+            const text = descriptionInput.value.trim();
+            if (!text) return;
+
+            setButtonLoading(classifyTextButton, true);
+            resultsPanel.classList.add("hidden");
+            errorMessage.classList.add("hidden");
+
+            try {
+                const prompt = `
+                Actúa como un contador experto en finanzas públicas de Uruguay. Analiza la siguiente descripción de un gasto.
+                Tu tarea es identificar el concepto, extraer el importe si existe (sino pon 0), identificar la moneda (sino asume UYU) y clasificarlo en un Rubro (ODG).
+
+                Descripción: "${text}"
+
+                INSTRUCCIONES FORMATO:
+                1. 'Importe': NÚMERO PURO (JSON Number), ej: 1250.50.
+                2. 'Concepto': Resumen breve.
+                3. 'Numero_ODG': El numero del rubro (ej: 111-000). Usa exactamente el ID de la lista provista.
+                4. 'Nombre_Rubro': El nombre del rubro (ej: Alimentación). Usa exactamente el nombre de la lista provista.
+                5. 'Motivo': Breve explicación de por qué se eligió ese rubro.
+                
+                Base de Datos Rubros: ${JSON.stringify(RUBROS_DB)}
+                Criterios usuario: ${currentSavedCriteria || "Ninguno"}
+                
+                Responde SOLO con un Array JSON con 1 objeto.
+                `;
+
+                classifiedData = await callGeminiAPI(prompt);
+                renderResultsToTable(classifiedData);
+                resultsPanel.classList.remove("hidden");
+
+            } catch (error) {
+                errorMessage.textContent = `Error: ${error.message}`;
+                errorMessage.classList.remove("hidden");
+            } finally {
+                setButtonLoading(classifyTextButton, false);
+            }
+        });
+
+        // 2. Clasificación de DOCUMENTO (Imagen/PDF)
+        classifyImageButton.addEventListener("click", async () => {
+            if (!currentImageFile) return;
+
+            setButtonLoading(classifyImageButton, true);
+            resultsPanel.classList.add("hidden");
+            errorMessage.classList.add("hidden");
+
+            try {
+                const base64Data = await fileToBase64(currentImageFile);
+                const inlineData = { mimeType: currentImageFile.type, data: base64Data };
+
+                const prompt = `
+                Actúa como contador experto de Uruguay. Analiza la factura adjunta. Extrae CADA línea de gasto individual.
+                
+                INSTRUCCIONES:
+                1. 'Importe': NÚMERO PURO (JSON Number). Ejemplo: 1200.50 (usa punto decimal, NO separador de miles).
+                2. 'Numero_ODG': El numero del rubro (ej: 111-000). Usa exactamente el ID de la lista provista que mejor se ajuste.
+                3. 'Nombre_Rubro': El nombre del rubro (ej: Alimentación). Usa exactamente el nombre de la lista provista.
+                4. 'Motivo': Breve explicación de por qué se eligió ese rubro.
+                
+                Base de Datos Rubros: ${JSON.stringify(RUBROS_DB)}
+                Criterios usuario: ${currentSavedCriteria || "Ninguno"}
+                
+                Responde SOLO con un Array JSON con todos los items encontrados.
+                `;
+
+                classifiedData = await callGeminiAPI(prompt, inlineData);
+                renderResultsToTable(classifiedData);
+                resultsPanel.classList.remove("hidden");
+
+            } catch (error) {
+                errorMessage.textContent = `Error: ${error.message}`;
+                errorMessage.classList.remove("hidden");
+            } finally {
+                setButtonLoading(classifyImageButton, false);
+            }
+        });
+
+        // Renderizar Tabla
+        function renderResultsToTable(data) {
+            tableBody.innerHTML = '';
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No se encontraron items.</td></tr>';
+                return;
+            }
+
+            data.forEach((item) => {
+                const row = tableBody.insertRow();
+                const importeVisual = formatCurrencyUY(item.Importe);
+                
+                row.innerHTML = `
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.Concepto}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">${importeVisual}</td>
+                    <td class="px-2 py-4 whitespace-nowrap text-sm text-gray-500 text-center">${item.Moneda || 'UYU'}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-indigo-600 font-semibold">${item.Numero_ODG || 'N/A'}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">${item.Nombre_Rubro || 'Otros'}</td>
+                    <td class="px-4 py-4 text-sm text-gray-500 italic text-wrap max-w-xs">${item.Motivo || ''}</td>
+                `;
+            });
+        }
+
+        // Generar Excel
+        downloadExcelButton.addEventListener("click", async () => {
+            if (classifiedData.length === 0) return;
+
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Gastos');
+
+            worksheet.columns = [
+                { header: 'Concepto', key: 'Concepto', width: 30 },
+                { header: 'Importe', key: 'Importe', width: 15, style: { numFmt: '#,##0.00' } }, 
+                { header: 'Moneda', key: 'Moneda', width: 10 },
+                { header: 'ODG', key: 'Numero_ODG', width: 15 },
+                { header: 'Descripción Rubro', key: 'Nombre_Rubro', width: 30 },
+                { header: 'Motivo', key: 'Motivo', width: 40 }
+            ];
+
+            // Estilo encabezado
+            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
+
+            classifiedData.forEach(item => {
+                worksheet.addRow({
+                    Concepto: item.Concepto,
+                    Importe: item.Importe,
+                    Moneda: item.Moneda || 'UYU',
+                    Numero_ODG: item.Numero_ODG,
+                    Nombre_Rubro: item.Nombre_Rubro,
+                    Motivo: item.Motivo
+                });
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gastos_${new Date().toISOString().split('T')[0]}.xlsx`;
+            a.click();
+        });
+
+        // Init
+        initFirebase();
+        saveButton.addEventListener("click", saveCriteria);
+
+    </script>
+</body>
+</html>
