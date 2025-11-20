@@ -36,17 +36,16 @@
             to { opacity: 1; transform: translateY(0); }
         }
         /* Spinner para el botón */
-        .loader-spin {
-            border: 2px solid rgba(255,255,255,0.3);
-            border-left-color: #ffffff;
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
         }
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
     <!-- Librería ExcelJS para generar el archivo XLSX -->
@@ -56,8 +55,8 @@
 
     <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100 relative">
         
-        <!-- Botón de Ajustes (Toggle Criterios y API Key) -->
-        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100" title="Configurar Reglas y API Key">
+        <!-- Botón de Ajustes (Solo Reglas) -->
+        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100" title="Configurar Reglas">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -84,16 +83,9 @@
                 <textarea id="user-criteria" rows="2" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Ej: 'Todos los gastos de Tienda Inglesa van al rubro 111-000'"></textarea>
             </div>
 
-            <!-- Sección API Key -->
-            <div class="space-y-2 border-t border-indigo-200 pt-4">
-                <label for="api-key-input" class="block text-sm font-bold text-indigo-800">API Key de Google Gemini (Opcional)</label>
-                <input type="password" id="api-key-input" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Pega tu API Key aquí si la tienes">
-                <p class="text-xs text-indigo-500">Si usas esto fuera del editor, necesitarás tu propia clave. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-indigo-800">Conseguir gratis</a>.</p>
-            </div>
-
             <div class="flex justify-end pt-2">
-                <button id="save-criteria-button" class="bg-indigo-600 text-white text-sm font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
-                    Guardar Configuración
+                <button id="save-settings-button" class="bg-indigo-600 text-white text-sm font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
+                    Guardar Reglas
                 </button>
             </div>
         </div>
@@ -119,16 +111,8 @@
                 </div>
                 
                 <button id="classify-text-button" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 ease-in-out flex items-center justify-center space-x-2 h-12">
-                    <!-- Contenido Normal -->
-                    <span class="btn-content flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM4 14a1 1 0 100-2H3v-2a1 1 0 10-2 0v2H0a1 1 0 100 2h1v2a1 1 0 102 0v-2h1z"/></svg>
-                        <span>Clasificar Texto</span>
-                    </span>
-                    <!-- Contenido Cargando -->
-                    <span class="btn-loading hidden flex items-center space-x-2">
-                        <div class="loader-spin"></div>
-                        <span>Analizando...</span>
-                    </span>
+                    <span class="btn-text">Clasificar Texto</span>
+                    <div class="btn-loader hidden spinner"></div>
                 </button>
             </div>
             
@@ -150,16 +134,8 @@
                 </div>
                 
                 <button id="classify-image-button" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 ease-in-out flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed h-12" disabled>
-                    <!-- Contenido Normal -->
-                    <span class="btn-content flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4V5h12v10zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>
-                        <span>Analizar y Clasificar Documento</span>
-                    </span>
-                    <!-- Contenido Cargando -->
-                    <span class="btn-loading hidden flex items-center space-x-2">
-                        <div class="loader-spin"></div>
-                        <span>Analizando...</span>
-                    </span>
+                    <span class="btn-text">Analizar y Clasificar Documento</span>
+                    <div class="btn-loader hidden spinner"></div>
                 </button>
             </div>
 
@@ -208,8 +184,13 @@
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // --- API Key ---
-        const apiKey = ""; // La clave se inyecta automáticamente en el entorno de ejecución.
+        // --- API Key Fija (Configurada por el desarrollador) ---
+        // ¡¡¡¡ IMPORTANTE !!!!
+        // BORRA LA COMILLA VACÍA DE ABAJO Y PEGA TU CLAVE ENTRE LAS COMILLAS ANTES DE SUBIRLO A GITHUB
+        // Ejemplo: const apiKey = "AIzaSyD_Tu_Clave_Secreta_De_Google";
+        
+        const apiKey = "AIzaSyCyjyB5Fpt-8hgxOL4DkkwT7Hfs5_SZ_po"; 
+        
         const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
 
         // --- Variables Globales ---
@@ -220,25 +201,20 @@
         let classifiedData = [];
 
         // --- Elementos del DOM ---
-        // Settings
         const settingsBtn = document.getElementById("settings-btn");
         const criteriaPanel = document.getElementById("criteria-panel");
         const criteriaInput = document.getElementById("user-criteria");
-        const apiKeyInput = document.getElementById("api-key-input");
-        const saveButton = document.getElementById("save-criteria-button");
+        const saveSettingsButton = document.getElementById("save-settings-button");
         const userIdDisplay = document.getElementById("user-id-display");
 
-        // Pestañas
         const tabText = document.getElementById("tab-text");
         const tabImage = document.getElementById("tab-image");
         const panelText = document.getElementById("panel-text");
         const panelImage = document.getElementById("panel-image");
 
-        // Modo Texto
         const descriptionInput = document.getElementById("expense-description");
         const classifyTextButton = document.getElementById("classify-text-button");
 
-        // Modo Imagen
         const invoiceUpload = document.getElementById("invoice-upload");
         const imagePreview = document.getElementById("image-preview");
         const pdfPreview = document.getElementById("pdf-preview");
@@ -246,14 +222,10 @@
         const placeholderText = document.getElementById("placeholder-text");
         const classifyImageButton = document.getElementById("classify-image-button");
         
-        // Comunes
         const errorMessage = document.getElementById("error-message");
         const resultsPanel = document.getElementById("results-panel");
         const tableBody = document.getElementById("table-body");
         const downloadExcelButton = document.getElementById("download-excel-button");
-
-        // Cargar API Key guardada
-        apiKeyInput.value = localStorage.getItem("gemini_api_key") || "";
 
         // --- TU BASE DE DATOS DE RUBROS (Expandida) ---
         const RUBROS_DB = [
@@ -350,23 +322,23 @@
             }).format(amount);
         }
 
-        // --- Helpers de UI (Loading) ---
+        // --- Helpers UI ---
         function setButtonLoading(btn, isLoading, originalText) {
-            const contentSpan = btn.querySelector('.btn-content');
-            const loadingSpan = btn.querySelector('.btn-loading');
+            const contentSpan = btn.querySelector('.btn-text');
+            const loadingSpan = btn.querySelector('.btn-loader');
             
             if (isLoading) {
                 btn.disabled = true;
                 btn.classList.add('opacity-75', 'cursor-not-allowed', 'bg-indigo-500');
                 btn.classList.remove('hover:bg-indigo-700');
-                contentSpan.classList.add('hidden');
-                loadingSpan.classList.remove('hidden');
+                if(contentSpan) contentSpan.classList.add('hidden');
+                if(loadingSpan) loadingSpan.classList.remove('hidden');
             } else {
                 btn.disabled = false;
                 btn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-indigo-500');
                 btn.classList.add('hover:bg-indigo-700');
-                contentSpan.classList.remove('hidden');
-                loadingSpan.classList.add('hidden');
+                if(contentSpan) contentSpan.classList.remove('hidden');
+                if(loadingSpan) loadingSpan.classList.add('hidden');
             }
         }
 
@@ -405,18 +377,15 @@
         }
 
         async function saveCriteria() {
-            const storedKey = apiKeyInput.value.trim();
-            if(storedKey) localStorage.setItem("gemini_api_key", storedKey);
-            
             if (!criteriaDocRef) return;
-            saveButton.textContent = "Guardando...";
+            saveSettingsButton.textContent = "Guardando...";
             try {
                 await setDoc(criteriaDocRef, { criteria: criteriaInput.value });
-                saveButton.textContent = "¡Guardado!";
-                setTimeout(() => saveButton.textContent = "Guardar Configuración", 2000);
+                saveSettingsButton.textContent = "¡Guardado!";
+                setTimeout(() => saveSettingsButton.textContent = "Guardar Configuración", 2000);
             } catch (e) {
                 console.error(e);
-                saveButton.textContent = "Error al guardar";
+                saveSettingsButton.textContent = "Error al guardar";
             }
         }
 
@@ -480,10 +449,6 @@
         // --- Lógica de Clasificación (API Gemini) ---
 
         async function callGeminiAPI(prompt, inlineData = null) {
-            // Priorizar clave guardada por usuario, sino usar la del entorno
-            const userKey = apiKeyInput.value.trim();
-            const activeKey = userKey || apiKey;
-            
             const payload = {
                 contents: [{
                     role: "user",
@@ -514,7 +479,7 @@
             let response;
             for(let i=0; i<3; i++) {
                 try {
-                    response = await fetch(`${API_URL}?key=${activeKey}`, {
+                    response = await fetch(`${API_URL}?key=${apiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -524,9 +489,10 @@
                 await new Promise(r => setTimeout(r, 1000 * (i+1)));
             }
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`Error de conexión (${response.status}). Si ves un 400/401, verifica la API Key en la rueda de ajustes.`);
+            if (!response || !response.ok) {
+                const errText = response ? await response.text() : "Error de red";
+                const status = response ? response.status : 0;
+                throw new Error(`Error al conectar con la IA: ${status} - ${errText}`);
             }
 
             const result = await response.json();
@@ -684,7 +650,7 @@
 
         // Init
         initFirebase();
-        saveButton.addEventListener("click", saveCriteria);
+        saveSettingsButton.addEventListener("click", saveCriteria);
 
     </script>
 </body>
