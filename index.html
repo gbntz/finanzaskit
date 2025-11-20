@@ -55,8 +55,8 @@
 
     <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100 relative">
         
-        <!-- Botón de Ajustes (Solo Reglas) -->
-        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100" title="Configurar Reglas">
+        <!-- Botón de Ajustes (Toggle Criterios y API Key) -->
+        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100" title="Configurar Reglas y API Key">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -83,9 +83,16 @@
                 <textarea id="user-criteria" rows="2" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Ej: 'Todos los gastos de Tienda Inglesa van al rubro 111-000'"></textarea>
             </div>
 
+            <!-- Sección API Key -->
+            <div class="space-y-2 border-t border-indigo-200 pt-4">
+                <label for="api-key-input" class="block text-sm font-bold text-indigo-800">API Key de Google Gemini (Opcional)</label>
+                <input type="password" id="api-key-input" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Pega tu API Key aquí si la tienes">
+                <p class="text-xs text-indigo-500">Si usas esto fuera del editor, necesitarás tu propia clave. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-indigo-800">Conseguir gratis</a>.</p>
+            </div>
+
             <div class="flex justify-end pt-2">
                 <button id="save-settings-button" class="bg-indigo-600 text-white text-sm font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
-                    Guardar Reglas
+                    Guardar Configuración
                 </button>
             </div>
         </div>
@@ -184,11 +191,8 @@
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // --- API Key Fija (Configurada por el desarrollador) ---
-        // ¡¡¡¡ IMPORTANTE !!!!
-        // BORRA LA COMILLA VACÍA DE ABAJO Y PEGA TU CLAVE ENTRE LAS COMILLAS ANTES DE SUBIRLO A GITHUB
-        // Ejemplo: const apiKey = "AIzaSyD_Tu_Clave_Secreta_De_Google";
-        
+        // --- API Key Fija ---
+        // PEGA TU CLAVE DE GOOGLE AI STUDIO AQUÍ ABAJO:
         const apiKey = "AIzaSyCyjyB5Fpt-8hgxOL4DkkwT7Hfs5_SZ_po"; 
         
         const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
@@ -199,11 +203,13 @@
         let criteriaDocRef;
         let currentImageFile = null;
         let classifiedData = [];
+        let userApiKey = localStorage.getItem("gemini_api_key") || "";
 
         // --- Elementos del DOM ---
         const settingsBtn = document.getElementById("settings-btn");
         const criteriaPanel = document.getElementById("criteria-panel");
         const criteriaInput = document.getElementById("user-criteria");
+        const apiKeyInput = document.getElementById("api-key-input");
         const saveSettingsButton = document.getElementById("save-settings-button");
         const userIdDisplay = document.getElementById("user-id-display");
 
@@ -227,7 +233,10 @@
         const tableBody = document.getElementById("table-body");
         const downloadExcelButton = document.getElementById("download-excel-button");
 
-        // --- TU BASE DE DATOS DE RUBROS (Expandida) ---
+        // Inicializar campo de API Key
+        apiKeyInput.value = userApiKey;
+
+        // --- TU BASE DE DATOS DE RUBROS ---
         const RUBROS_DB = [
             { "numero": "111-000", "nombre": "Alimentación Personas (General)", "descripcion": "Todo insumo/producto c/destino final a la alimentación/personas." },
             { "numero": "111-001", "nombre": "Alimentación Personas (U.C.A.A.)", "descripcion": "Alimentos para personas cuyas compras se realizan a través de la Unidad Centralizada de Adquisición de Alimentos U.C.A.A." },
@@ -377,6 +386,13 @@
         }
 
         async function saveCriteria() {
+            // Guardar API Key en LocalStorage si se ingresó una
+            const inputKey = apiKeyInput.value.trim();
+            if(inputKey && inputKey !== userApiKey) {
+                 userApiKey = inputKey;
+                 localStorage.setItem("gemini_api_key", userApiKey);
+            }
+
             if (!criteriaDocRef) return;
             saveSettingsButton.textContent = "Guardando...";
             try {
@@ -449,12 +465,18 @@
         // --- Lógica de Clasificación (API Gemini) ---
 
         async function callGeminiAPI(prompt, inlineData = null) {
+            const activeKey = userApiKey || apiKey;
+
+            if (!activeKey) {
+                throw new Error("Falta la API Key. Configúrala en el botón de engranaje o en el código.");
+            }
+
             const payload = {
                 contents: [{
                     role: "user",
                     parts: [
                         { text: prompt },
-                        ...(inlineData ? [inlineData] : [])
+                        ...(inlineData ? [{ inlineData: inlineData }] : [])
                     ]
                 }],
                 generationConfig: {
@@ -479,7 +501,7 @@
             let response;
             for(let i=0; i<3; i++) {
                 try {
-                    response = await fetch(`${API_URL}?key=${apiKey}`, {
+                    response = await fetch(`${API_URL}?key=${activeKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -492,6 +514,12 @@
             if (!response || !response.ok) {
                 const errText = response ? await response.text() : "Error de red";
                 const status = response ? response.status : 0;
+                if (status === 400) {
+                    throw new Error(`Error 400: Solicitud inválida a la IA. Revisa el archivo.`);
+                }
+                if (status === 401) {
+                    throw new Error(`Error 401: API Key inválida. Verifica en Ajustes.`);
+                }
                 throw new Error(`Error al conectar con la IA: ${status} - ${errText}`);
             }
 
