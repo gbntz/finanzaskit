@@ -56,7 +56,8 @@
     <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100 relative">
         
         <!-- Botón de Ajustes (Solo Reglas) -->
-        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100" title="Configurar Reglas">
+        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100 flex items-center gap-2" title="Configurar Reglas Globales">
+            <span class="text-xs font-medium">Reglas Globales</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -76,16 +77,17 @@
                 <div class="flex justify-between items-center">
                     <label for="user-criteria" class="block text-sm font-bold text-indigo-800 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                        Reglas Personalizadas
+                        Reglas Globales (Compartidas por todos)
                     </label>
-                    <span id="user-id-display" class="text-xs text-indigo-400 font-mono"></span>
+                    <span class="text-xs text-indigo-400 font-mono bg-white px-2 py-1 rounded border border-indigo-100">Base de Datos Pública</span>
                 </div>
-                <textarea id="user-criteria" rows="2" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Ej: 'Todos los gastos de Tienda Inglesa van al rubro 111-000'"></textarea>
+                <p class="text-xs text-indigo-600 mb-2">⚠️ Cuidado: Cualquier cambio que hagas aquí afectará a todos los usuarios de la aplicación.</p>
+                <textarea id="user-criteria" rows="4" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Ej: 'Todos los gastos de Tienda Inglesa van al rubro 111-000'"></textarea>
             </div>
 
             <div class="flex justify-end pt-2">
                 <button id="save-settings-button" class="bg-indigo-600 text-white text-sm font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
-                    Guardar Reglas
+                    Guardar Cambios Globales
                 </button>
             </div>
         </div>
@@ -184,10 +186,8 @@
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // --- API Key Fija (Configurada por el desarrollador) ---
-        // ¡¡¡¡ IMPORTANTE !!!!
-        // PEGA TU CLAVE DE GOOGLE AI STUDIO AQUÍ ABAJO:
-        const apiKey = "AIzaSyCyjyB5Fpt-8hgxOL4DkkwT7Hfs5_SZ_po"; 
+        // --- API Key Fija ---
+        const apiKey = ""; // <<< ¡PEGAR TU CLAVE DE GOOGLE AQUÍ!
         
         const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
 
@@ -197,14 +197,13 @@
         let criteriaDocRef;
         let currentImageFile = null;
         let classifiedData = [];
-        let RUBROS_DB = []; // Inicialmente vacío, se carga del JSON
+        let RUBROS_DB = [];
 
         // --- Elementos del DOM ---
         const settingsBtn = document.getElementById("settings-btn");
         const criteriaPanel = document.getElementById("criteria-panel");
         const criteriaInput = document.getElementById("user-criteria");
         const saveSettingsButton = document.getElementById("save-settings-button");
-        const userIdDisplay = document.getElementById("user-id-display");
 
         const tabText = document.getElementById("tab-text");
         const tabImage = document.getElementById("tab-image");
@@ -225,7 +224,6 @@
         const resultsPanel = document.getElementById("results-panel");
         const tableBody = document.getElementById("table-body");
         const downloadExcelButton = document.getElementById("download-excel-button");
-
 
         // --- Utilidades ---
         function fileToBase64(file) {
@@ -268,7 +266,6 @@
         // --- Carga de Rubros desde JSON ---
         async function fetchRubros() {
              try {
-                // Busca el archivo en la misma carpeta
                 const response = await fetch('./listado_odg_completo.json');
                 if (!response.ok) {
                    throw new Error(`HTTP error! Status: ${response.status}`);
@@ -277,7 +274,7 @@
                 console.log("Rubros loaded:", RUBROS_DB.length);
              } catch(error) {
                  console.error("Failed to load rubros:", error);
-                 errorMessage.textContent = "Error: No se pudo cargar la base de datos de rubros (listado_odg_completo.json). Asegúrate de que el archivo esté en la misma carpeta.";
+                 errorMessage.textContent = "Error: No se pudo cargar la base de datos de rubros. Verifica que 'listado_odg_completo.json' esté en la misma carpeta.";
                  errorMessage.classList.remove("hidden");
                  classifyTextButton.disabled = true;
                  classifyImageButton.disabled = true;
@@ -298,9 +295,10 @@
                 }
                 
                 userId = auth.currentUser.uid;
-                userIdDisplay.textContent = `ID: ${userId.substring(0, 8)}...`;
 
-                criteriaDocRef = doc(db, 'artifacts', appId, 'users', userId, 'app_config', 'user_criteria');
+                // CAMBIO CLAVE: Usar ruta PÚBLICA para reglas compartidas
+                // artifacts/{appId}/public/data/app_config/global_criteria
+                criteriaDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_config', 'global_criteria');
                 listenForCriteria();
 
             } catch (error) {
@@ -314,6 +312,9 @@
                 if (docSnap.exists()) {
                     currentSavedCriteria = docSnap.data().criteria || "";
                     criteriaInput.value = currentSavedCriteria;
+                } else {
+                    currentSavedCriteria = "";
+                    criteriaInput.value = "";
                 }
             });
         }
@@ -324,7 +325,7 @@
             try {
                 await setDoc(criteriaDocRef, { criteria: criteriaInput.value });
                 saveSettingsButton.textContent = "¡Guardado!";
-                setTimeout(() => saveSettingsButton.textContent = "Guardar Reglas", 2000);
+                setTimeout(() => saveSettingsButton.textContent = "Guardar Cambios Globales", 2000);
             } catch (e) {
                 console.error(e);
                 saveSettingsButton.textContent = "Error al guardar";
@@ -333,12 +334,10 @@
 
         // --- Lógica de Interfaz ---
         
-        // Settings Toggle
         settingsBtn.addEventListener("click", () => {
             criteriaPanel.classList.toggle("hidden");
         });
 
-        // Cambio de Pestañas
         function switchTab(mode) {
             resultsPanel.classList.add("hidden");
             errorMessage.classList.add("hidden");
@@ -359,7 +358,6 @@
         tabText.addEventListener("click", () => switchTab('text'));
         tabImage.addEventListener("click", () => switchTab('image'));
 
-        // Upload Input
         invoiceUpload.addEventListener("change", (event) => {
             const file = event.target.files[0];
             classifyImageButton.disabled = !file;
@@ -392,7 +390,7 @@
 
         async function callGeminiAPI(prompt, inlineData = null) {
             if (!apiKey) {
-                throw new Error("Falta la API Key. Debes pegarla en el código antes de subir el archivo.");
+                throw new Error("Falta la API Key en el código. Por favor, configura la variable 'apiKey' en el archivo HTML.");
             }
 
             const payload = {
@@ -438,12 +436,6 @@
             if (!response || !response.ok) {
                 const errText = response ? await response.text() : "Error de red";
                 const status = response ? response.status : 0;
-                if (status === 400) {
-                    throw new Error(`Error 400: Solicitud inválida a la IA. Revisa el archivo.`);
-                }
-                if (status === 401) {
-                    throw new Error(`Error 401: API Key inválida.`);
-                }
                 throw new Error(`Error al conectar con la IA: ${status} - ${errText}`);
             }
 
@@ -481,7 +473,7 @@
                 5. 'Motivo': Breve explicación de por qué se eligió ese rubro.
                 
                 Base de Datos Rubros (TOTAL ${RUBROS_DB.length}): ${JSON.stringify(RUBROS_DB)}
-                Criterios usuario: ${currentSavedCriteria || "Ninguno"}
+                Criterios Globales de Equipo: ${currentSavedCriteria || "Ninguno"}
                 
                 Responde SOLO con un Array JSON con 1 objeto.
                 `;
@@ -520,7 +512,7 @@
                 4. 'Motivo': Breve explicación de por qué se eligió ese rubro.
                 
                 Base de Datos Rubros (TOTAL ${RUBROS_DB.length}): ${JSON.stringify(RUBROS_DB)}
-                Criterios usuario: ${currentSavedCriteria || "Ninguno"}
+                Criterios Globales de Equipo: ${currentSavedCriteria || "Ninguno"}
                 
                 Responde SOLO con un Array JSON con todos los items encontrados.
                 `;
