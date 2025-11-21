@@ -56,7 +56,8 @@
     <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100 relative">
         
         <!-- Botón de Ajustes (Solo Reglas) -->
-        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100" title="Configurar Reglas">
+        <button id="settings-btn" class="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-full hover:bg-gray-100 flex items-center gap-2" title="Configurar Reglas">
+            <span class="text-xs font-medium hidden sm:inline">Configurar Reglas</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -76,17 +77,17 @@
                 <div class="flex justify-between items-center">
                     <label for="user-criteria" class="block text-sm font-bold text-indigo-800 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                        Reglas Globales (Compartidas por todos)
+                        Reglas Personalizadas
                     </label>
-                    <span class="text-xs text-indigo-400 font-mono bg-white px-2 py-1 rounded border border-indigo-100">Base de Datos Pública</span>
+                    <span id="storage-status" class="text-xs text-indigo-400 font-mono bg-white px-2 py-1 rounded border border-indigo-100">Cargando...</span>
                 </div>
-                <p class="text-xs text-indigo-600 mb-2">⚠️ Cuidado: Cualquier cambio que hagas aquí afectará a todos los usuarios de la aplicación.</p>
+                <p class="text-xs text-indigo-600 mb-2">Define reglas específicas para ayudar a la IA (ej: proveedores habituales).</p>
                 <textarea id="user-criteria" rows="4" class="w-full p-3 border border-indigo-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white" placeholder="Ej: 'Todos los gastos de Tienda Inglesa van al rubro 111-000'"></textarea>
             </div>
 
             <div class="flex justify-end pt-2">
                 <button id="save-settings-button" class="bg-indigo-600 text-white text-sm font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm transition-colors duration-300">
-                    Guardar Cambios Globales
+                    Guardar Reglas
                 </button>
             </div>
         </div>
@@ -201,12 +202,6 @@
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // --- API Key Fija (Configurada por el desarrollador) ---
-       
-        const apiKey = "AIzaSyCyjyB5Fpt-8hgxOL4DkkwT7Hfs5_SZ_po"; 
-        
-        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
-
         // --- Variables Globales ---
         let app, db, auth, userId;
         let currentSavedCriteria = "";
@@ -214,13 +209,17 @@
         let currentImageFile = null;
         let classifiedData = [];
         let RUBROS_DB = [];
+        let APP_CONFIG = null;
+        let useFirebase = true; // Flag para modo híbrido
+
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
 
         // --- Elementos del DOM ---
         const settingsBtn = document.getElementById("settings-btn");
         const criteriaPanel = document.getElementById("criteria-panel");
         const criteriaInput = document.getElementById("user-criteria");
         const saveSettingsButton = document.getElementById("save-settings-button");
-        const userIdDisplay = document.getElementById("user-id-display");
+        const storageStatus = document.getElementById("storage-status");
 
         const tabText = document.getElementById("tab-text");
         const tabImage = document.getElementById("tab-image");
@@ -238,12 +237,9 @@
         const classifyImageButton = document.getElementById("classify-image-button");
         
         const errorMessage = document.getElementById("error-message");
-        
-        // Full Screen Elements
         const fullscreenResults = document.getElementById("fullscreen-results");
         const closeResultsBtn = document.getElementById("close-results-btn");
         const tableBody = document.getElementById("table-body");
-        const downloadExcelButton = document.getElementById("download-excel-button");
         const downloadExcelModalButton = document.getElementById("download-excel-modal-button");
 
         // --- Utilidades ---
@@ -284,74 +280,107 @@
             }
         }
 
-        // --- Carga de Rubros desde JSON ---
-        async function fetchRubros() {
-             try {
-                const response = await fetch('./listado_odg_completo.json');
-                if (!response.ok) {
-                   throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                RUBROS_DB = await response.json();
-                console.log("Rubros loaded:", RUBROS_DB.length);
-             } catch(error) {
-                 console.error("Failed to load rubros:", error);
-                 errorMessage.textContent = "Error: No se pudo cargar la base de datos de rubros. Verifica que el archivo .json esté en la misma carpeta.";
-                 errorMessage.classList.remove("hidden");
-                 classifyTextButton.disabled = true;
-                 classifyImageButton.disabled = true;
-             }
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.remove("hidden");
+            // No deshabilitamos botones por errores de carga de datos opcionales
         }
 
-        // --- Firebase Logic ---
-        async function initFirebase() {
+        // --- Carga de Archivos Externos ---
+
+        async function fetchConfig() {
             try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                
-                userId = auth.currentUser.uid;
-
-                criteriaDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_config', 'global_criteria');
-                listenForCriteria();
-
+                const response = await fetch('./config.json');
+                if (!response.ok) throw new Error("No config found");
+                APP_CONFIG = await response.json();
+                console.log("Config cargada.");
             } catch (error) {
-                console.error("Error Firebase:", error);
+                console.warn("No se cargó config.json. Verificando variables de entorno...", error);
             }
         }
 
-        function listenForCriteria() {
-            if (!criteriaDocRef) return;
-            onSnapshot(criteriaDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    currentSavedCriteria = docSnap.data().criteria || "";
-                    criteriaInput.value = currentSavedCriteria;
+        async function fetchRubros() {
+            try {
+                const response = await fetch('./listado_odg_completo.json');
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                
+                const textData = await response.text();
+                // LIMPIEZA PROFUNDA: Eliminar caracteres de control del PDF que rompen JSON
+                // Elimina caracteres de control (ASCII 0-31) excepto saltos de línea necesarios
+                const cleanText = textData.replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, ""); 
+                
+                RUBROS_DB = JSON.parse(cleanText);
+                console.log("Rubros cargados:", RUBROS_DB.length);
+            } catch(error) {
+                 console.error("Failed to load rubros:", error);
+                 showError("Error: No se pudo cargar 'listado_odg_completo.json'. Verifica el archivo y su formato.");
+            }
+        }
+
+        // --- Gestión de Almacenamiento (Híbrido) ---
+
+        async function initStorage() {
+            try {
+                // Verificar si tenemos configuración válida de Firebase
+                if (!firebaseConfig || !firebaseConfig.projectId) {
+                    throw new Error("Sin configuración Firebase válida.");
                 }
-            });
+
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                await signInAnonymously(auth);
+                
+                userId = auth.currentUser.uid;
+                
+                // Referencia GLOBAL
+                criteriaDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_config', 'global_criteria');
+                
+                // Escuchar cambios en tiempo real
+                onSnapshot(criteriaDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        currentSavedCriteria = docSnap.data().criteria || "";
+                        criteriaInput.value = currentSavedCriteria;
+                    }
+                });
+                
+                storageStatus.textContent = "Modo Nube (Sincronizado)";
+                storageStatus.classList.add("text-green-600", "border-green-200", "bg-green-50");
+
+            } catch (e) {
+                console.warn("Cambiando a almacenamiento local (LocalStorage):", e.message);
+                useFirebase = false;
+                
+                // Cargar desde LocalStorage
+                currentSavedCriteria = localStorage.getItem("local_criteria") || "";
+                criteriaInput.value = currentSavedCriteria;
+                
+                storageStatus.textContent = "Modo Local (Solo este dispositivo)";
+                storageStatus.classList.add("text-amber-600", "border-amber-200", "bg-amber-50");
+            }
         }
 
         async function saveCriteria() {
-            if (!criteriaDocRef) return;
             saveSettingsButton.textContent = "Guardando...";
+            const newCriteria = criteriaInput.value;
+
             try {
-                await setDoc(criteriaDocRef, { criteria: criteriaInput.value });
+                if (useFirebase && criteriaDocRef) {
+                    await setDoc(criteriaDocRef, { criteria: newCriteria });
+                } else {
+                    // Fallback LocalStorage
+                    localStorage.setItem("local_criteria", newCriteria);
+                    currentSavedCriteria = newCriteria;
+                }
                 
-                // Feedback Visual y Reset
+                // Feedback Visual
                 saveSettingsButton.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
                 saveSettingsButton.classList.add("bg-green-600", "hover:bg-green-700");
                 saveSettingsButton.textContent = "¡Guardado!";
                 
                 setTimeout(() => {
-                    // Ocultar panel
                     criteriaPanel.classList.add("hidden");
-                    
-                    // Resetear botón
-                    saveSettingsButton.textContent = "Guardar Cambios Globales";
+                    saveSettingsButton.textContent = "Guardar Reglas";
                     saveSettingsButton.classList.remove("bg-green-600", "hover:bg-green-700");
                     saveSettingsButton.classList.add("bg-indigo-600", "hover:bg-indigo-700");
                 }, 1500);
@@ -369,6 +398,7 @@
         });
 
         function switchTab(mode) {
+            // resultsPanel.classList.add("hidden");
             errorMessage.classList.add("hidden");
             
             if (mode === 'text') {
@@ -420,34 +450,26 @@
         function showResults(data) {
             renderResultsToTable(data);
             fullscreenResults.classList.remove("hidden");
-            // Pequeño timeout para la animación de opacidad
             setTimeout(() => {
                 fullscreenResults.classList.remove("opacity-0");
             }, 10);
         }
 
         function closeAndResetApp() {
-            // 1. Ocultar modal
             fullscreenResults.classList.add("opacity-0");
             setTimeout(() => {
                 fullscreenResults.classList.add("hidden");
             }, 300);
 
-            // 2. Limpiar datos
             classifiedData = [];
             currentImageFile = null;
-
-            // 3. Limpiar inputs texto
             descriptionInput.value = "";
-            
-            // 4. Limpiar inputs archivo
-            invoiceUpload.value = ""; // Reset file input
+            invoiceUpload.value = ""; 
             imagePreview.src = "";
             imagePreview.classList.add("hidden");
             pdfPreview.classList.add("hidden");
             placeholderText.classList.remove("hidden");
             
-            // 5. Resetear botones
             classifyImageButton.disabled = true;
             classifyImageButton.classList.add("opacity-50", "cursor-not-allowed");
             
@@ -460,8 +482,8 @@
         // --- Lógica de Clasificación (API Gemini) ---
 
         async function callGeminiAPI(prompt, inlineData = null) {
-            if (!apiKey) {
-                throw new Error("Falta la API Key en el código. Por favor, configura la variable 'apiKey' en el archivo HTML.");
+            if (!APP_CONFIG || !APP_CONFIG.gemini_api_key) {
+                throw new Error("Falta la API Key. Asegúrate de que 'config.json' esté cargado.");
             }
 
             const payload = {
@@ -494,7 +516,7 @@
             let response;
             for(let i=0; i<3; i++) {
                 try {
-                    response = await fetch(`${API_URL}?key=${apiKey}`, {
+                    response = await fetch(`${API_URL}?key=${APP_CONFIG.gemini_api_key}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -507,12 +529,6 @@
             if (!response || !response.ok) {
                 const errText = response ? await response.text() : "Error de red";
                 const status = response ? response.status : 0;
-                if (status === 400) {
-                    throw new Error(`Error 400: Solicitud inválida a la IA. Revisa el archivo.`);
-                }
-                if (status === 401) {
-                    throw new Error(`Error 401: API Key inválida.`);
-                }
                 throw new Error(`Error al conectar con la IA: ${status} - ${errText}`);
             }
 
@@ -548,14 +564,14 @@
                 4. 'Nombre_Rubro': El nombre del rubro (ej: Alimentación). Usa exactamente el nombre de la lista provista.
                 5. 'Motivo': Breve explicación de por qué se eligió ese rubro.
                 
-                Base de Datos Rubros (TOTAL ${RUBROS_DB.length}): ${JSON.stringify(RUBROS_DB)}
+                Base de Datos Rubros: ${JSON.stringify(RUBROS_DB)}
                 Criterios Globales de Equipo: ${currentSavedCriteria || "Ninguno"}
                 
                 Responde SOLO con un Array JSON con 1 objeto.
                 `;
 
                 classifiedData = await callGeminiAPI(prompt);
-                showResults(classifiedData); // MOSTRAR MODAL
+                showResults(classifiedData); 
 
             } catch (error) {
                 errorMessage.textContent = `Error: ${error.message}`;
@@ -585,14 +601,14 @@
                 3. 'Nombre_Rubro': El nombre del rubro (ej: Alimentación). Usa exactamente el nombre de la lista provista.
                 4. 'Motivo': Breve explicación de por qué se eligió ese rubro.
                 
-                Base de Datos Rubros (TOTAL ${RUBROS_DB.length}): ${JSON.stringify(RUBROS_DB)}
+                Base de Datos Rubros: ${JSON.stringify(RUBROS_DB)}
                 Criterios Globales de Equipo: ${currentSavedCriteria || "Ninguno"}
                 
                 Responde SOLO con un Array JSON con todos los items encontrados.
                 `;
 
                 classifiedData = await callGeminiAPI(prompt, inlineData);
-                showResults(classifiedData); // MOSTRAR MODAL
+                showResults(classifiedData); 
 
             } catch (error) {
                 errorMessage.textContent = `Error: ${error.message}`;
@@ -641,7 +657,6 @@
                 { header: 'Motivo', key: 'Motivo', width: 40 }
             ];
 
-            // Estilo encabezado
             worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
             worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
 
@@ -665,12 +680,13 @@
             a.click();
         };
 
-        // Event Listeners para descarga
-        if(downloadExcelButton) downloadExcelButton.addEventListener("click", generateExcel);
         if(downloadExcelModalButton) downloadExcelModalButton.addEventListener("click", generateExcel);
 
-        // Init
-        await Promise.all([initFirebase(), fetchRubros()]);
+        // Inicialización
+        window.addEventListener('DOMContentLoaded', async () => {
+            await Promise.all([initStorage(), fetchRubros(), fetchConfig()]);
+        });
+        
         saveSettingsButton.addEventListener("click", saveCriteria);
 
     </script>
