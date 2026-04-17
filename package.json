@@ -1,0 +1,30 @@
+{
+  "name": "finanzaskit",
+  "version": "1.0.0",
+  "description": "Clasificador de gastos con IA para el sector público uruguayo",
+  "main": "index.js",
+  "scripts": {
+    "install:functions": "cd functions && npm install",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:functions": "firebase deploy --only functions",
+    "serve": "firebase emulators:start",
+    "login": "firebase login"
+  },
+  "keywords": [
+    "firebase",
+    "gemini",
+    "ai",
+    "clasificador",
+    "gastos",
+    "odg",
+    "uruguay"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gbntz/finanzaskit.git"
+  }
+}

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinanzasKit - Clasificador de Gastos con IA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+    header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+    header p { opacity: 0.9; font-size: 1.1rem; }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .card h2 {
+      color: #333;
+      margin-bottom: 16px;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+      transition: border-color 0.3s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .file-upload {
+      border: 2px dashed #e0e0e0;
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .file-upload:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+    .file-upload input[type="file"] {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .file-upload-icon {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    .file-upload-text {
+      color: #666;
+    }
+    .file-upload-preview {
+      max-width: 200px;
+      max-height: 200px;
+      margin: 10px auto;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    .results-table th,
+    .results-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .results-table th {
+      background: #f8f9ff;
+      color: #333;
+      font-weight: 600;
+    }
+    .results-table tr:hover {
+      background: #f8f9ff;
+    }
+    .results-table .odg-code {
+      font-weight: 600;
+      color: #667eea;
+    }
+    .results-table .amount {
+      font-weight: 600;
+      color: #22c55e;
+      text-align: right;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .spinner {
+      border: 4px solid #e0e0e0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error {
+      background: #fef2f2;
+      color: #dc2626;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #fecaca;
+    }
+
+    .hidden { display: none; }
+
+    .badge {
+      background: #667eea;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.8rem; }
+      .card { padding: 16px; }
+      .results-table th, .results-table td { padding: 8px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>FinanzasKit</h1>
+      <p>Clasificador de gastos con Inteligencia Artificial</p>
+    </header>
+
+    <div class="card">
+      <h2>📝 Descripción del Gasto</h2>
+      <label for="descripcion">Describí el gasto o concepto:</label>
+      <textarea
+        id="descripcion"
+        placeholder="Ej: Compra de 50 sillas de oficina, 10 escritorios y material de papelería para la nueva sede..."
+      ></textarea>
+    </div>
+
+    <div class="card">
+      <h2>📷 Foto de Factura (opcional)</h2>
+      <div class="file-upload" id="fileUpload">
+        <input type="file" id="imagen" accept="image/*">
+        <div class="file-upload-icon">📎</div>
+        <div class="file-upload-text">Arrastrá una imagen o hacé clic para subir</div>
+        <img class="file-upload-preview" id="preview" alt="Vista previa">
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="btn" id="btnClasificar" onclick="clasificarGasto()">
+        🔍 Clasificar con IA
+      </button>
+    </div>
+
+    <div class="card hidden" id="cardResultados">
+      <h2>📊 Resultados de Clasificación <span class="badge" id="totalBadge"></span></h2>
+      <div id="resultadosContenido"></div>
+    </div>
+  </div>
+
+  <script>
+    // Variable global para almacenar la imagen en base64
+    let imagenBase64 = null;
+
+    // Preview de imagen
+    const imagenInput = document.getElementById('imagen');
+    const preview = document.getElementById('preview');
+    const fileUploadText = document.querySelector('.file-upload-text');
+
+    imagenInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          fileUploadText.textContent = file.name;
+          // Guardar en base64 (quitar el prefix data:image/...;base64,)
+          imagenBase64 = e.target.result.split(',')[1];
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Función principal de clasificación
+    async function clasificarGasto() {
+      const descripcion = document.getElementById('descripcion').value.trim();
+
+      if (!descripcion && !imagenBase64) {
+        alert('Por favor ingresá una descripción o subí una imagen de factura');
+        return;
+      }
+
+      const btn = document.getElementById('btnClasificar');
+      const cardResultados = document.getElementById('cardResultados');
+      const resultadosContenido = document.getElementById('resultadosContenido');
+
+      // Estado de carga
+      btn.disabled = true;
+      btn.textContent = '⏳ Analizando...';
+      cardResultados.classList.remove('hidden');
+      resultadosContenido.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>La IA está analizando tu gasto y clasificándolo según los ODG...</p>
+        </div>
+      `;
+
+      try {
+        // Preparar payload JSON
+        const payload = {
+          descripcion: descripcion,
+          imagenBase64: imagenBase64
+        };
+
+        // Llamar a Firebase Function
+        const response = await fetch('/api/clasificarGasto', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error('Error en la clasificación: ' + response.statusText);
+        }
+
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        // Mostrar resultados
+        mostrarResultados(data);
+
+      } catch (error) {
+        resultadosContenido.innerHTML = `
+          <div class="error">
+            <strong>Error:</strong> ${error.message}
+            <br><small>Verificá tu conexión a internet e intentá de nuevo.</small>
+          </div>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Clasificar con IA';
+      }
+    }
+
+    function mostrarResultados(data) {
+      const resultadosContenido = document.getElementById('resultadosContenido');
+      const totalBadge = document.getElementById('totalBadge');
+
+      const { clasificacion, total } = data;
+
+      if (!clasificacion || clasificacion.length === 0) {
+        resultadosContenido.innerHTML = '<p>No se pudo clasificar el gasto. Intentá con más detalles.</p>';
+        return;
+      }
+
+      let html = `
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>ODG</th>
+              <th>Descripción</th>
+              <th style="text-align: right;">Importe</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      clasificacion.forEach(item => {
+        html += `
+          <tr>
+            <td class="odg-code">${item.codigo}</td>
+            <td>${item.descripcion}</td>
+            <td class="amount">$${parseFloat(item.importe).toLocaleString('es-UY', {minimumFractionDigits: 2})}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+          </tbody>
+          <tfoot>
+            <tr style="background: #f0f0f0; font-weight: bold;">
+              <td colspan="2">Total</td>
+              <td class="amount">$${total.toLocaleString('es-UY', {minimumFractionDigits: 2})}</td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+
+      totalBadge.textContent = `Total: $${total.toLocaleString('es-UY', {minimumFractionDigits: 2})}`;
+      resultadosContenido.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

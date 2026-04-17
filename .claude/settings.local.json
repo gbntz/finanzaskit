@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(firebase:*)",
+      "Bash(git init:*)",
+      "Bash(git checkout:*)"
+    ]
+  }
+}
