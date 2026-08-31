@@ -288,7 +288,7 @@
         };
 
         // Llamar a Firebase Function
-        const response = await fetch('/api/clasificarGasto', {
+        const response = await fetch('https://us-central1-finanzaskit.cloudfunctions.net/clasificarGasto', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
