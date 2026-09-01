@@ -85,7 +85,7 @@ ${descripcion || "Analizá la factura adjunta"}
           "X-Title": "FinanzasKit"
         },
         body: JSON.stringify({
-          model: "openrouter/auto",
+          model: "openrouter/free",
           messages: [{ role: "user", content: contentPayload }]
         })
       });
