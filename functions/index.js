@@ -72,7 +72,9 @@ ${descripcion || "Analizá la factura adjunta"}
       } else {
         contentPayload = prompt;
       }
-
+      
+      console.log("DEBUG - API key presente:", !!process.env.OPENROUTER_API_KEY, "longitud:", process.env.OPENROUTER_API_KEY?.length || 0);
+      
       // Llamada a OpenRouter usando el token guardado en el secreto
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
