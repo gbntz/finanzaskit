@@ -13,6 +13,7 @@ exports.clasificarGasto = onRequest(
     cors: true,
     memory: "512MiB",
     timeoutSeconds: 60,
+    secrets: ["OPENROUTER_API_KEY"], 
   },
   async (req, res) => {
     // Manejo de preflight CORS
