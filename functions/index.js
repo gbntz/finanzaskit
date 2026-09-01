@@ -82,7 +82,7 @@ ${descripcion || "Analizá la factura adjunta"}
           "X-Title": "FinanzasKit"
         },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-exp:free",
+          model: "openrouter/auto",
           messages: [{ role: "user", content: contentPayload }]
         })
       });
