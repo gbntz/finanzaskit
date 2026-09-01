@@ -10,7 +10,10 @@
     "rewrites": [
       {
         "source": "/api/clasificarGasto",
-        "function": "clasificarGasto"
+        "function": {
+          "functionId": "clasificarGasto",
+          "region": "us-central1"
+        }
       }
     ]
   },
